@@ -1,14 +1,16 @@
 import { encode } from "https://deno.land/std@0.202.0/encoding/base64.ts";
-import { daily } from "https://deno.land/x/deno_cron@v1.0.0/cron.ts";
+import { cron } from "https://deno.land/x/deno_cron@v1.0.0/cron.ts";
 
 class Config {
   port: number;
   api_addr: string;
   groups: number[];
-  constructor(port: number, api_addr: string, groups: number[]) {
+  cron: string;
+  constructor(port: number, api_addr: string, groups: number[], cron: string) {
     this.port = port;
     this.api_addr = api_addr;
     this.groups = groups;
+    this.cron = cron;
   }
 }
 
@@ -37,7 +39,9 @@ function get_config(): Config {
     ) ?? [];
   if (groups.length == 0) throw new Error("GROUPS cannot be undefined");
 
-  return new Config(port, api_addr, groups);
+  const cron = Deno.env.get("CRON") ?? "1 0 0 * * *";
+
+  return new Config(port, api_addr, groups, cron);
 }
 
 function init() {
@@ -46,14 +50,12 @@ function init() {
 }
 
 function get_image_cqcode(path: string) {
-  const p = new Uint8Array();
-  Deno.openSync(path).readSync(p);
-  const base64 = encode(p);
+  const base64 = encode(Deno.readFileSync(path));
   return `[CQ:image,file=base64://${base64}]`;
 }
 
-function get_description(context: Context, group_id: number) {
-  const ctx = context[group_id];
+function get_description(ctx: { user_rank: { [nickname: string]: number } }) {
+  console.log(JSON.stringify(ctx));
   const entries = Object.entries(ctx.user_rank);
   const people_count = entries.length;
   const msg_count = entries.map(([_, count]) => count).reduce(
@@ -76,8 +78,9 @@ function run(config: Config) {
       group_id?: number;
     },
   ) =>
-    json.post_type == "message" && json.message_type == "group" &&
-    json.sub_type == "normal" && String(json.group_id) in config.groups;
+    (json.post_type == "message" || json.post_type == "message_sent") &&
+    json.message_type == "group" &&
+    json.sub_type == "normal" && config.groups.includes(json.group_id ?? 0);
 
   let context = new Context(config);
 
@@ -85,8 +88,11 @@ function run(config: Config) {
     const json = await request.json();
 
     if (msgPredicate(json)) {
+      console.log(JSON.stringify(json));
       const group_id: number = json.group_id;
-      const nickname: string = json.sender.nickname;
+      const nickname: string = json.sender.card != ""
+        ? json.sender.card
+        : json.sender.nickname;
       const user_rank = context[group_id].user_rank;
       const messages = context[group_id].messages;
 
@@ -95,6 +101,7 @@ function run(config: Config) {
 
       json.message.forEach(
         (element: { type: string; data: { text: string } }) => {
+          console.log(JSON.stringify(element));
           if (element.type == "text") messages.push(element.data.text);
         },
       );
@@ -104,13 +111,13 @@ function run(config: Config) {
 
   Deno.serve({ port: config.port }, handler);
 
-  const command = new Deno.Command("python", {
+  const command = new Deno.Command("python3", {
     args: ["./word_cloud.py"],
     stdin: "piped",
     stdout: "null",
   });
 
-  daily(() => {
+  cron(config.cron, () => {
     let task = Promise.resolve();
 
     const encoder = new TextEncoder();
@@ -120,8 +127,9 @@ function run(config: Config) {
       const group_id = Number(group_id_str);
       const child = command.spawn();
 
-      child.stdin.getWriter().write(encoder.encode(all_msg));
-      child.stdin.close();
+      const writer = child.stdin.getWriter();
+      writer.write(encoder.encode(all_msg)).then(() => writer.releaseLock())
+        .then(() => child.stdin.close());
 
       task = task.then(() =>
         child.status.then((status) => {
@@ -150,7 +158,7 @@ function run(config: Config) {
                     }),
                     body: JSON.stringify({
                       group_id: group_id,
-                      message: get_description(context, group_id),
+                      message: get_description(ctx),
                       auto_escape: false,
                     }),
                   });

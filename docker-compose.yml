@@ -4,5 +4,6 @@ services:
     environment:
       API_ADDR: 'http://localhost:1234'
       GROUPS: 
+      CRON: '1 0 0 * * *'
     ports:
       - "3101:3101"
