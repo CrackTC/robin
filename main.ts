@@ -26,7 +26,7 @@ class Context {
 }
 
 function get_config(): Config {
-  const port = Number(Deno.env.get("PORT")) ?? 0xc1d;
+  const port = Number(Deno.env.get("PORT") ?? 3101);
 
   const api_addr = Deno.env.get("API_ADDR") ?? "";
   if (api_addr == "") throw new Error("API_ADDR cannot be undefined");
