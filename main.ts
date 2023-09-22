@@ -69,6 +69,25 @@ function get_description(ctx: { user_rank: { [nickname: string]: number } }) {
   }`;
 }
 
+function send_group_message(
+  config: Config,
+  group_id: number,
+  message: string,
+  parse_cq: boolean,
+) {
+  const url = config.api_addr + "/send_group_msg";
+  const headers = new Headers({ "Content-Type": "application/json" });
+  return fetch(url, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({
+      group_id,
+      message,
+      auto_escape: !parse_cq,
+    }),
+  });
+}
+
 function run(config: Config) {
   const msgPredicate = (
     json: {
@@ -117,60 +136,54 @@ function run(config: Config) {
     stdout: "null",
   });
 
+  let task = Promise.resolve();
+
   cron(config.cron, () => {
-    let task = Promise.resolve();
-
-    const encoder = new TextEncoder();
-    const url = config.api_addr + "/send_group_msg";
     Object.entries(context).forEach(([group_id_str, ctx]) => {
-      const all_msg = ctx.messages.join("\n");
-      const group_id = Number(group_id_str);
-      const child = command.spawn();
+      task = task.then(async () => {
+        const all_msg = ctx.messages.join("\n");
+        const group_id = Number(group_id_str);
 
-      const writer = child.stdin.getWriter();
-      writer.write(encoder.encode(all_msg)).then(() => writer.releaseLock())
-        .then(() => child.stdin.close());
+        const child = command.spawn();
+        const writer = child.stdin.getWriter();
 
-      task = task.then(() =>
-        child.status.then((status) => {
-          if (!status.success) {
-            console.error(
-              `child process exited with non-zero status code ${status.code}`,
-            );
-            return;
-          } else {
-            fetch(url, {
-              method: "POST",
-              headers: new Headers({ "Content-Type": "application/json" }),
-              body: JSON.stringify({
-                group_id: group_id,
-                message: get_image_cqcode("./result.png"),
-              }),
-            }).then((response) => {
-              response.json().then((json) => {
-                if (json.status == "failed") {
-                  console.error(`send image failed: ${json.msg}`);
-                } else {
-                  fetch(url, {
-                    method: "POST",
-                    headers: new Headers({
-                      "Content-Type": "application/json",
-                    }),
-                    body: JSON.stringify({
-                      group_id: group_id,
-                      message: get_description(ctx),
-                      auto_escape: false,
-                    }),
-                  });
-                }
-              });
-            });
-          }
-        })
-      );
+        await writer.write(new TextEncoder().encode(all_msg));
+        writer.releaseLock();
+        child.stdin.close();
+
+        const status = await child.status;
+        if (!status.success) {
+          console.error(
+            `child process exited with non-zero status code ${status.code}`,
+          );
+          return;
+        }
+
+        const response = await send_group_message(
+          config,
+          group_id,
+          get_image_cqcode("./result.png"),
+          true,
+        );
+
+        const json = await response.json();
+        if (json.status == "failed") {
+          console.error(`send image failed: ${json.msg}`);
+          return;
+        }
+
+        send_group_message(
+          config,
+          group_id,
+          get_description(ctx),
+          false,
+        );
+      });
     });
 
-    context = new Context(config);
+    task = task.then(() => {
+      context = new Context(config);
+    });
   });
 }
 
