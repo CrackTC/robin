@@ -1,5 +1,5 @@
 import sys
-import jieba
+from jieba.posseg import cut, pair
 from wordcloud import WordCloud
 from typing import Callable, Iterable, Dict, List
 
@@ -32,10 +32,19 @@ def get_text(input: str) -> str:
         return open(input).read()
 
 
+def default_pred(p: pair):
+    blacklist = ["ad", "c", "d", "x", "r", "u", "z"]
+    for not_allowed in blacklist:
+        if p.flag.startswith(not_allowed):
+            return False
+
+    return True
+
+
 def get_words(
         text: str,
-        pred: Callable[[str], bool] = lambda word: len(word) > 1) -> List[str]:
-    return list(filter(pred, jieba.cut(text)))
+        pred: Callable[[pair], bool] = default_pred) -> List[str]:
+    return list(map(lambda p: p.word, filter(pred, cut(text))))
 
 
 def get_freq_dict(words: Iterable) -> Dict[str, int]:
