@@ -5,11 +5,23 @@ class Config {
   port: number;
   api_addr: string;
   groups: number[];
+  max_retry: number;
+  retry_interval: number;
   cron: string;
-  constructor(port: number, api_addr: string, groups: number[], cron: string) {
+
+  constructor(
+    port: number,
+    api_addr: string,
+    groups: number[],
+    max_retry: number,
+    retry_interval: number,
+    cron: string,
+  ) {
     this.port = port;
     this.api_addr = api_addr;
     this.groups = groups;
+    this.max_retry = max_retry;
+    this.retry_interval = retry_interval;
     this.cron = cron;
   }
 }
@@ -39,9 +51,11 @@ function get_config(): Config {
     ) ?? [];
   if (groups.length == 0) throw new Error("GROUPS cannot be undefined");
 
+  const max_retry = Number(Deno.env.get("MAX_RETRY") ?? 5);
+  const retry_interval = Number(Deno.env.get("RETRY_INTERVAL") ?? 30);
   const cron = Deno.env.get("CRON") ?? "1 0 0 * * *";
 
-  return new Config(port, api_addr, groups, cron);
+  return new Config(port, api_addr, groups, max_retry, retry_interval, cron);
 }
 
 function init() {
@@ -69,7 +83,15 @@ function get_description(ctx: { user_rank: { [nickname: string]: number } }) {
   }`;
 }
 
-function send_group_message(
+async function is_failed(response: Response) {
+  return (await response.json()).status == "failed";
+}
+
+function sleep(s: number) {
+  return new Promise((resolve) => setTimeout(resolve, s * 1000));
+}
+
+async function send_group_message(
   config: Config,
   group_id: number,
   message: string,
@@ -77,15 +99,48 @@ function send_group_message(
 ) {
   const url = config.api_addr + "/send_group_msg";
   const headers = new Headers({ "Content-Type": "application/json" });
-  return fetch(url, {
-    method: "POST",
-    headers,
-    body: JSON.stringify({
-      group_id,
-      message,
-      auto_escape: !parse_cq,
-    }),
-  });
+
+  for (let i = 0; i < config.max_retry + 1; i++) {
+    const response = await fetch(url, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        group_id,
+        message,
+        auto_escape: !parse_cq,
+      }),
+    });
+    if (await is_failed(response)) {
+      console.warn(
+        `send message failed: ${await response
+          .text()}\nretry in ${config.retry_interval} seconds`,
+      );
+      await sleep(config.retry_interval);
+    } else {
+      return true;
+    }
+  }
+
+  console.error(
+    `failed to send message to group ${group_id} after ${config.max_retry} retries`,
+  );
+  return false;
+}
+
+function get_time() {
+  const date = new Date();
+  return [
+    date.getFullYear(),
+    date.getMonth() + 1,
+    date.getDate(),
+    date.getHours(),
+    date.getMinutes(),
+    date.getSeconds(),
+  ].map((num) => num.toString().padStart(2, "0")).join("");
+}
+
+function get_backup_name(name: string) {
+  return [get_time(), crypto.randomUUID(), name].join(".");
 }
 
 function run(config: Config) {
@@ -159,25 +214,21 @@ function run(config: Config) {
           return;
         }
 
-        const response = await send_group_message(
-          config,
-          group_id,
-          get_image_cqcode("./result.png"),
-          true,
-        );
-
-        const json = await response.json();
-        if (json.status == "failed") {
-          console.error(`send image failed: ${json.msg}`);
-          return;
+        const img = get_image_cqcode("./result.png");
+        let success = await send_group_message(config, group_id, img, true);
+        if (!success) {
+          const backup_name = get_backup_name("./result.png");
+          Deno.renameSync("./result.png", backup_name);
+          console.log(`send image failed, backup to ${backup_name}`);
         }
 
-        send_group_message(
-          config,
-          group_id,
-          get_description(ctx),
-          false,
-        );
+        const desc = get_description(ctx);
+        success = await send_group_message(config, group_id, desc, false);
+        if (!success) {
+          const backup_name = get_backup_name("./result.txt");
+          Deno.writeTextFileSync(backup_name, desc);
+          console.log(`send description failed, backup to ${backup_name}`);
+        }
       });
     });
 
