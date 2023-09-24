@@ -33,17 +33,19 @@ def get_text(input: str) -> str:
 
 
 def default_pred(p: pair):
-    blacklist = ["ad", "c", "d", "x", "r", "u", "z"]
+    blacklist = ["ad", "c", "d", "x", "r", "u", "z", "y"]
     for not_allowed in blacklist:
         if p.flag.startswith(not_allowed):
             return False
 
+    if p.flag.startswith("v") and len(p.word) < 2:
+        return False
+
     return True
 
 
-def get_words(
-        text: str,
-        pred: Callable[[pair], bool] = default_pred) -> List[str]:
+def get_words(text: str,
+              pred: Callable[[pair], bool] = default_pred) -> List[str]:
     return list(map(lambda p: p.word, filter(pred, cut(text))))
 
 
