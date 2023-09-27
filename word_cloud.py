@@ -33,12 +33,15 @@ def get_text(input: str) -> str:
 
 
 def default_pred(p: pair):
-    blacklist = ["ad", "c", "d", "x", "r", "u", "z", "y"]
+    blacklist = ["ad", "c", "d", "x", "r", "u", "z", "y", "p", "f"]
     for not_allowed in blacklist:
         if p.flag.startswith(not_allowed):
             return False
 
     if p.flag.startswith("v") and len(p.word) < 2:
+        return False
+
+    if p.flag.startswith("q") and len(p.word) < 3:
         return False
 
     return True
