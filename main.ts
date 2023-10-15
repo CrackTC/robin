@@ -101,23 +101,30 @@ async function send_group_message(
   const headers = new Headers({ "Content-Type": "application/json" });
 
   for (let i = 0; i < config.max_retry + 1; i++) {
-    const response = await fetch(url, {
-      method: "POST",
-      headers,
-      body: JSON.stringify({
-        group_id,
-        message,
-        auto_escape: !parse_cq,
-      }),
-    });
-    if (await is_failed(response)) {
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({
+          group_id,
+          message,
+          auto_escape: !parse_cq,
+        }),
+      });
+      if (await is_failed(response)) {
+        console.warn(
+          `send message failed: ${await response
+            .text()}\nretry in ${config.retry_interval} seconds`,
+        );
+        await sleep(config.retry_interval);
+      } else {
+        return true;
+      }
+    } catch (e) {
       console.warn(
-        `send message failed: ${await response
-          .text()}\nretry in ${config.retry_interval} seconds`,
+        `send message failed: ${e}\nretry in ${config.retry_interval} seconds`,
       );
       await sleep(config.retry_interval);
-    } else {
-      return true;
     }
   }
 
