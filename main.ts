@@ -165,6 +165,8 @@ function run(config: Config) {
 
   let context = new Context(config);
 
+  const CQ_REG = /\[CQ:[^\]]+\]/g;
+
   const handler = async (request: Request) => {
     const json = await request.json();
 
@@ -180,12 +182,10 @@ function run(config: Config) {
       if (nickname in user_rank) user_rank[nickname]++;
       else user_rank[nickname] = 1;
 
-      json.message.forEach(
-        (element: { type: string; data: { text: string } }) => {
-          console.log(JSON.stringify(element));
-          if (element.type == "text") messages.push(element.data.text);
-        },
-      );
+      let message : string = json.message;
+      message = message.replaceAll(CQ_REG, "");
+      console.log(message);
+      messages.push(message);
     }
     return new Response(null, { status: 204 });
   };
