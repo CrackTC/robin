@@ -224,7 +224,7 @@ function run(config: Config) {
         const img = get_image_cqcode("./result.png");
         let success = await send_group_message(config, group_id, img, true);
         if (!success) {
-          const backup_name = get_backup_name("./result.png");
+          const backup_name = get_backup_name("result.png");
           Deno.renameSync("./result.png", backup_name);
           console.log(`send image failed, backup to ${backup_name}`);
         }
@@ -232,7 +232,7 @@ function run(config: Config) {
         const desc = get_description(ctx);
         success = await send_group_message(config, group_id, desc, false);
         if (!success) {
-          const backup_name = get_backup_name("./result.txt");
+          const backup_name = get_backup_name("result.txt");
           Deno.writeTextFileSync(backup_name, desc);
           console.log(`send description failed, backup to ${backup_name}`);
         }
