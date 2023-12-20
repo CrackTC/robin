@@ -28,7 +28,7 @@ export const wordcloud_handler = (report: Report) => {
 };
 
 const COMMAND = new Deno.Command("python3", {
-  args: ["./word_cloud.py", "--output", "/dev/stdout"],
+  args: ["./word_cloud.py", "--output=/dev/stdout"],
   stdin: "piped",
   stdout: "piped",
 });
