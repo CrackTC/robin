@@ -29,7 +29,7 @@ export const wordcloud_handler = (report: Report) => {
 };
 
 const COMMAND = new Deno.Command("python3", {
-  args: ["./word_cloud.py", "--output=/dev/shm/word_cloud.png"],
+  args: ["./handlers/word_cloud/word_cloud.py", "--output=/dev/shm/word_cloud.png"],
   stdin: "piped",
   stdout: "null",
 });
