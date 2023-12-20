@@ -28,9 +28,9 @@ export const wordcloud_handler = (report: Report) => {
 };
 
 const COMMAND = new Deno.Command("python3", {
-  args: ["./word_cloud.py", "--output=/dev/stdout"],
+  args: ["./word_cloud.py", "--output=/dev/shm/word_cloud.png"],
   stdin: "piped",
-  stdout: "piped",
+  stdout: "null",
 });
 
 let task = Promise.resolve();
@@ -47,19 +47,21 @@ cron(CONFIG.cron, () => {
       writer.releaseLock();
       child.stdin.close();
 
-      const output = await child.output();
-
-      if (!output.success) {
-        error(`child process exited with non-zero status code ${output.code}`);
+      const status = await child.status;
+      if (!status.success) {
+        error(`child process exited with non-zero status code ${status.code}`);
         return;
       }
 
-      const img = image2cqcode(output.stdout);
+      const img_bytes = await Deno.readFile("/dev/shm/word_cloud.png");
+      const img = image2cqcode(img_bytes);
       const success = await send_group_message(group_id, img, true);
       if (!success) {
         error("send image failed");
-        backup(output.stdout, "result.png");
+        backup(img_bytes, "result.png");
       }
+
+      Deno.remove("/dev/shm/word_cloud.png");
     });
   });
 
