@@ -55,10 +55,11 @@ function get_description_text(
 function get_description(stat: GroupStat) {
   log(JSON.stringify(stat));
 
-  const entries: UserStat[] = Object
-    .entries(stat.user_rank)
-    .map(([name, count]) => ({ name, count }));
+  const entries: UserStat[] = stat.get_user_stats();
   const people_count = entries.length;
+
+  if (people_count == 0) return "本群无人发言";
+
   const msg_count = entries.map(({ count }) => count).reduce((l, r) => l + r);
   const rank = get_top_n(entries, 10);
 

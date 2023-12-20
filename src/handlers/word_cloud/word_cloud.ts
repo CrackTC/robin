@@ -39,6 +39,8 @@ cron(CONFIG.cron, () => {
   CONFIG.groups.forEach((group_id) => {
     task = task.then(async () => {
       const messages = context[group_id];
+      if (messages.length === 0) return;
+
       const all_msg = messages.join("\n");
 
       const child = COMMAND.spawn();
