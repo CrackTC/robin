@@ -5,17 +5,13 @@ import { cron } from "https://deno.land/x/deno_cron@v1.0.0/cron.ts";
 import { send_group_message } from "../../cqhttp.ts";
 
 class GroupStat {
-  user_rank: { [nickname: string]: number };
+  user_rank: { [nickname: string]: number } = {};
 
   get_user_stats() {
     return Object.entries(this.user_rank).map(([name, count]) => ({
       name,
       count,
     }));
-  }
-
-  constructor() {
-    this.user_rank = {};
   }
 }
 
