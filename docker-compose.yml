@@ -7,3 +7,5 @@ services:
       CRON: '1 0 0 * * *'
     ports:
       - "3101:3101"
+    volumes:
+      - ./data:/app/data
