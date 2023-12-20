@@ -1,8 +1,8 @@
-import { CONFIG } from "../config.ts";
-import { Report } from "./base.ts";
-import { backup, error, log } from "../utils.ts";
+import { CONFIG } from "../../config.ts";
+import { Report } from "../base.ts";
+import { backup, error, log } from "../../utils.ts";
 import { cron } from "https://deno.land/x/deno_cron@v1.0.0/cron.ts";
-import { send_group_message } from "../cqhttp.ts";
+import { send_group_message } from "../../cqhttp.ts";
 
 class GroupStat {
   user_rank: { [nickname: string]: number };

@@ -1,7 +1,7 @@
 import { CONFIG } from "./config.ts";
 import { Report, ReportHandler } from "./handlers/base.ts";
-import { user_rank_handler } from "./handlers/user_rank.ts";
-import { wordcloud_handler } from "./handlers/word_cloud.ts";
+import { user_rank_handler } from "./handlers/user_rank/user_rank.ts";
+import { wordcloud_handler } from "./handlers/word_cloud/word_cloud.ts";
 
 function report_pred(report: Report) {
   return (report.post_type == "message") &&
@@ -20,5 +20,8 @@ async function request_handler(request: Request) {
   return new Response(null, { status: 204 });
 }
 
-const report_handlers: ReportHandler[] = [user_rank_handler, wordcloud_handler];
+const report_handlers: ReportHandler[] = [
+  user_rank_handler,
+  wordcloud_handler,
+];
 Deno.serve({ port: CONFIG.port }, request_handler);

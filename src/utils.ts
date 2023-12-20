@@ -1,13 +1,3 @@
-import { encode } from "https://deno.land/std@0.202.0/encoding/base64.ts";
-
-export function image2cqcode(data: Uint8Array) {
-  return `[CQ:image,file=base64://${encode(data)}]`;
-}
-
-export function remove_cqcode(text: string) {
-  return text.replaceAll(/\[CQ:[^\]]+\]/g, "");
-}
-
 export function log(...data: unknown[]) {
   console.log(new Date(), ...data);
 }

@@ -1,7 +1,8 @@
-import { CONFIG } from "../config.ts";
-import { send_group_message } from "../cqhttp.ts";
-import { backup, error, image2cqcode, log, remove_cqcode } from "../utils.ts";
-import { Report } from "./base.ts";
+import { CONFIG } from "../../config.ts";
+import { send_group_message } from "../../cqhttp.ts";
+import { backup, error, log } from "../../utils.ts";
+import { cq_image, remove_cqcode } from "../../cqhttp.ts";
+import { Report } from "../base.ts";
 import { cron } from "https://deno.land/x/deno_cron@v1.0.0/cron.ts";
 
 class Context {
@@ -54,7 +55,7 @@ cron(CONFIG.cron, () => {
       }
 
       const img_bytes = await Deno.readFile("/dev/shm/word_cloud.png");
-      const img = image2cqcode(img_bytes);
+      const img = cq_image(img_bytes);
       const success = await send_group_message(group_id, img, true);
       if (!success) {
         error("send image failed");

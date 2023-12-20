@@ -1,9 +1,22 @@
 import { CONFIG } from "./config.ts";
 import { sleep } from "https://deno.land/x/sleep@v1.2.1/mod.ts";
 import { error, warn } from "./utils.ts";
+import { encode } from "https://deno.land/std@0.202.0/encoding/base64.ts";
 
 async function is_failed(response: Response) {
   return (await response.json()).status == "failed";
+}
+
+export function cq_image(data: Uint8Array) {
+  return `[CQ:image,file=base64://${encode(data)}]`;
+}
+
+export function cq_at(at: number) {
+  return `[CQ:at,qq=${at}]`;
+}
+
+export function remove_cqcode(text: string) {
+  return text.replaceAll(/\[CQ:[^\]]+\]/g, "");
 }
 
 export async function send_group_message(
@@ -45,4 +58,12 @@ export async function send_group_message(
     `failed to send message to group ${group_id} after ${CONFIG.max_retry} retries`,
   );
   return false;
+}
+
+export function send_group_at_message(
+  group_id: number,
+  message: string,
+  at: number,
+) {
+  return send_group_message(group_id, cq_at(at) + message, true);
 }
