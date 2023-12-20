@@ -19,6 +19,10 @@ export function remove_cqcode(text: string) {
   return text.replaceAll(/\[CQ:[^\]]+\]/g, "");
 }
 
+export function is_at_self(text: string) {
+  return text.includes(`[CQ:at,qq=${CONFIG.self_id}]`);
+}
+
 export async function send_group_message(
   group_id: number,
   message: string,

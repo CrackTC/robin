@@ -1,5 +1,5 @@
 import { Report } from "../base.ts";
-import { cq_image, send_group_at_message } from "../../cqhttp.ts";
+import { cq_image, is_at_self, send_group_at_message } from "../../cqhttp.ts";
 
 interface Word {
   word: string;
@@ -10,18 +10,20 @@ interface Image {
 }
 
 export const rand_reply_handler = (report: Report) => {
-  const sender_id = report.sender.user_id;
-  const rand = Math.floor(Math.random() * all_list.length);
-  const entry = all_list[rand];
+  if (is_at_self(report.message)) {
+    const sender_id = report.sender.user_id;
+    const rand = Math.floor(Math.random() * all_list.length);
+    const entry = all_list[rand];
 
-  let reply;
-  if ("word" in entry) {
-    reply = entry.word;
-  } else {
-    reply = cq_image(Deno.readFileSync(entry.path));
+    let reply;
+    if ("word" in entry) {
+      reply = entry.word;
+    } else {
+      reply = cq_image(Deno.readFileSync(entry.path));
+    }
+
+    send_group_at_message(report.group_id, reply, sender_id);
   }
-
-  send_group_at_message(report.group_id, reply, sender_id);
 };
 
 const WORD_LIST_PATH = "./data/word_list.json";
