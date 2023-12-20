@@ -23,7 +23,7 @@ export async function send_group_message(
   for (let i = 0; i < CONFIG.max_retry + 1; i++) {
     try {
       const response = await fetch(url, params);
-      if (await is_failed(response)) {
+      if (await is_failed(response.clone())) {
         warn(
           `send message failed: ${await response.text()}` +
             `retry in ${interval} seconds`,
