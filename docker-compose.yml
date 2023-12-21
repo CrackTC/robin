@@ -5,6 +5,9 @@ services:
       API_ADDR: 'http://localhost:1234'
       GROUPS: 
       CRON: '1 0 0 * * *'
+      PIXIV_REFRESH_TOKEN:
+      OPENAI_API_KEY:
+      ILL_INPUT_MATCH:
     ports:
       - "3101:3101"
     volumes:

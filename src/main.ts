@@ -3,6 +3,7 @@ import { Report, ReportHandler } from "./handlers/base.ts";
 import { user_rank_handler } from "./handlers/user_rank/user_rank.ts";
 import { wordcloud_handler } from "./handlers/word_cloud/word_cloud.ts";
 import { rand_reply_handler } from "./handlers/rand_reply/rand_reply.ts";
+import { search_ill_handler } from "./handlers/search_ill/search_ill.ts";
 
 function report_pred(report: Report) {
   return (report.post_type == "message") &&
@@ -25,5 +26,6 @@ const report_handlers: ReportHandler[] = [
   user_rank_handler,
   wordcloud_handler,
   rand_reply_handler,
+  search_ill_handler,
 ];
 Deno.serve({ port: CONFIG.port }, request_handler);
