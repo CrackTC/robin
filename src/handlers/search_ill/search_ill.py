@@ -38,12 +38,12 @@ blacklist = set(['R18', 'R-18'])
 
 
 def search(tags):
+    auth()
+
     tags = list(filter(lambda tag: tag not in blacklist, tags))
 
     if len(tags) == 0:
-        print('[]')
-        return
-    auth()
+        tags = ["オリジナル", "女の子"]
 
     ills = filter(
         lambda ill: ill.page_count == 1 and ill.total_bookmarks > 150 and
