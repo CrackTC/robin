@@ -145,7 +145,7 @@ async function choose_ill(paths: string[]) {
 
   log(reply.usage?.total_tokens);
 
-  return choices[Math.floor(Math.random() * choices.length)];
+  return choices[Math.floor(Math.random() * choices.length)] - 1;
 }
 
 function check_rate_limit(group_id: number) {
@@ -196,7 +196,7 @@ export async function search_ill_handler(report: Report) {
       }
     });
 
-    const [[_, path]] = await download_large([ids[choice - 1]]);
+    const [[_, path]] = await download_large([ids[choice]]);
     send_group_at_message(
       report.group_id,
       [cq_image(Deno.readFileSync(path)), url].join("\n"),
