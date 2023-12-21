@@ -56,7 +56,7 @@ async function call_function(completion: ChatCompletion, report: Report) {
       report.sender.user_id,
     );
     const command_search = new Deno.Command("python3", {
-      args: ["search_ill.py", "search"].concat(args.tags),
+      args: ["./handlers/search_ill/search_ill.py", "search"].concat(args.tags),
       stdout: "piped",
     });
     const child = command_search.spawn();
@@ -72,7 +72,7 @@ async function call_function(completion: ChatCompletion, report: Report) {
 
 async function download_small(ids: number[]) {
   const command_download = new Deno.Command("python3", {
-    args: ["search_ill.py", "download_small"].concat(
+    args: ["./handlers/search_ill/search_ill.py", "download_small"].concat(
       ids.map((id) => id.toString()),
     ),
     stdout: "piped",
@@ -93,7 +93,7 @@ async function download_small(ids: number[]) {
 
 async function download_large(ids: number[]) {
   const command_download = new Deno.Command("python3", {
-    args: ["search_ill.py", "download"].concat(ids.map((id) => id.toString())),
+    args: ["./handlers/search_ill/search_ill.py", "download"].concat(ids.map((id) => id.toString())),
     stdout: "piped",
   });
 
