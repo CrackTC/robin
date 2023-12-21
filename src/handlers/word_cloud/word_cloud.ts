@@ -1,6 +1,6 @@
 import { CONFIG } from "../../config.ts";
 import { send_group_message } from "../../cqhttp.ts";
-import { backup, error, log } from "../../utils.ts";
+import { backup, error, log, spawn_set_input } from "../../utils.ts";
 import { cq_image, remove_cqcode } from "../../cqhttp.ts";
 import { Report } from "../base.ts";
 import { cron } from "https://deno.land/x/deno_cron@v1.0.0/cron.ts";
@@ -28,12 +28,6 @@ export const wordcloud_handler = (report: Report) => {
   messages.push(message);
 };
 
-const COMMAND = new Deno.Command("python3", {
-  args: ["./handlers/word_cloud/word_cloud.py", "--output=/dev/shm/word_cloud.png"],
-  stdin: "piped",
-  stdout: "null",
-});
-
 let task = Promise.resolve();
 cron(CONFIG.cron, () => {
   CONFIG.groups.forEach((group_id) => {
@@ -41,30 +35,20 @@ cron(CONFIG.cron, () => {
       const messages = context[group_id];
       if (messages.length === 0) return;
 
-      const all_msg = messages.join("\n");
+      spawn_set_input([
+        "python3",
+        WORD_CLOUD_PY,
+        `--output=${IMAGE_PATH}`,
+      ], messages.join("\n"));
 
-      const child = COMMAND.spawn();
-
-      const writer = child.stdin.getWriter();
-      await writer.write(new TextEncoder().encode(all_msg));
-      writer.releaseLock();
-      child.stdin.close();
-
-      const status = await child.status;
-      if (!status.success) {
-        error(`child process exited with non-zero status code ${status.code}`);
-        return;
-      }
-
-      const img_bytes = await Deno.readFile("/dev/shm/word_cloud.png");
-      const img = cq_image(img_bytes);
-      const success = await send_group_message(group_id, img, true);
+      const image = await Deno.readFile(IMAGE_PATH);
+      const success = await send_group_message(group_id, cq_image(image), true);
       if (!success) {
         error("send image failed");
-        backup(img_bytes, "result.png");
+        backup(image, "word_cloud.png");
       }
 
-      Deno.remove("/dev/shm/word_cloud.png");
+      Deno.remove(IMAGE_PATH);
     });
   });
 
@@ -72,3 +56,6 @@ cron(CONFIG.cron, () => {
     context.init();
   });
 });
+
+const IMAGE_PATH = "/dev/shm/word_cloud.png";
+const WORD_CLOUD_PY = "./handlers/word_cloud/word_cloud.py";

@@ -35,3 +35,37 @@ export function backup(data: Uint8Array | string, name: string) {
   }
   warn(`backup to ${backup_name}`);
 }
+
+export async function spawn_set_input(argv: string[], input: string) {
+  log("spawn", argv);
+  const command = new Deno.Command(argv[0], {
+    args: argv.slice(1),
+    stdin: "piped",
+  });
+
+  const process = command.spawn();
+  const writer = process.stdin.getWriter();
+  await writer.write(new TextEncoder().encode(input));
+  writer.releaseLock();
+  await process.stdin.close();
+
+  const output = await process.output();
+  if (!output.success) {
+    error(`spawn ${argv[0]} failed with code ${output.code}`);
+  }
+}
+
+export async function spawn_get_output(argv: string[]) {
+  log("spawn", argv);
+  const command = new Deno.Command(argv[0], {
+    args: argv.slice(1),
+    stdout: "piped",
+  });
+
+  const output = await command.spawn().output();
+  if (output.success) {
+    return new TextDecoder().decode(output.stdout);
+  } else {
+    error(`spawn ${argv[0]} failed with code ${output.code}`);
+  }
+}
