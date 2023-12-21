@@ -56,7 +56,7 @@ async function call_function(completion: ChatCompletion, report: Report) {
   const fn = completion.choices[0].message.tool_calls[0].function;
   switch (fn.name) {
     case "search_ill":
-      return await search_ill(JSON.parse(fn.arguments), report);
+      return await search_ill(JSON.parse(fn.arguments).tags, report);
   }
   return [];
 }
@@ -163,7 +163,7 @@ export async function search_ill_handler(report: Report) {
       }
     });
 
-    const [[_, path]] = await download_large([ids[choice]]);
+    const [[_, path]] = await download_large([ids[choice - 1]]);
     send_group_at_message(
       report.group_id,
       [cq_image(Deno.readFileSync(path)), url].join("\n"),
