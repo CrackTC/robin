@@ -37,7 +37,7 @@ cron(CONFIG.cron, () => {
       const messages = context[group_id];
       if (messages.length === 0) return;
 
-      spawn_set_input([
+      await spawn_set_input([
         "python3",
         WORD_CLOUD_PY,
         `--output=${IMAGE_PATH}`,
