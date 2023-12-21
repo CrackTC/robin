@@ -8,6 +8,7 @@ import {
   ChatCompletionCreateParamsNonStreaming,
   ChatCompletionTool,
 } from "https://deno.land/x/openai@v4.24.0/resources/mod.ts";
+
 import {
   cq_image,
   remove_cqcode,
@@ -55,17 +56,31 @@ async function call_function(completion: ChatCompletion, report: Report) {
       `using tags ${args.tags}`,
       report.sender.user_id,
     );
-    const command_search = new Deno.Command("python3", {
-      args: ["./handlers/search_ill/search_ill.py", "search"].concat(args.tags),
-      stdout: "piped",
-    });
-    const child = command_search.spawn();
-    const output = await child.output();
-    if (!output.success) {
-      log("Search failed");
-      return [];
+    while (args.tags.length > 0) {
+      const command_search = new Deno.Command("python3", {
+        args: ["./handlers/search_ill/search_ill.py", "search"].concat(
+          args.tags,
+        ),
+        stdout: "piped",
+      });
+      const child = command_search.spawn();
+      const output = await child.output();
+      if (!output.success) {
+        log("Search failed");
+        return [];
+      }
+      const res: number[] = JSON.parse(
+        new TextDecoder().decode(output.stdout),
+      );
+
+      if (res.length > 0) return res;
+      args.tags.pop();
+      send_group_at_message(
+        report.group_id,
+        `No ill found, using tags ${args.tags}`,
+        report.sender.user_id,
+      );
     }
-    return JSON.parse(new TextDecoder().decode(output.stdout)) as number[];
   }
   return [];
 }
