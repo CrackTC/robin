@@ -41,7 +41,7 @@ def search(tags):
     tags = list(filter(lambda tag: tag not in blacklist, tags))
 
     if len(tags) == 0:
-        print('usage: python search_ill.py tag1 tag2 ...')
+        print('[]')
         return
     auth()
 

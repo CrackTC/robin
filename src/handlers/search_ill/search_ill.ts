@@ -93,7 +93,9 @@ async function download_small(ids: number[]) {
 
 async function download_large(ids: number[]) {
   const command_download = new Deno.Command("python3", {
-    args: ["./handlers/search_ill/search_ill.py", "download"].concat(ids.map((id) => id.toString())),
+    args: ["./handlers/search_ill/search_ill.py", "download"].concat(
+      ids.map((id) => id.toString()),
+    ),
     stdout: "piped",
   });
 
@@ -107,7 +109,7 @@ async function download_large(ids: number[]) {
   return JSON.parse(new TextDecoder().decode(output.stdout)) as [
     string,
     string,
-  ];
+  ][];
 }
 
 async function get_ill(input: string, report: Report) {
@@ -153,6 +155,11 @@ async function get_ill(input: string, report: Report) {
   log(pairs);
   if (pairs.length == 0) {
     log("No ill found");
+    send_group_at_message(
+      report.group_id,
+      "再怎么找也找不到啦>_<",
+      report.sender.user_id,
+    );
     return;
   }
 
@@ -185,7 +192,7 @@ async function get_ill(input: string, report: Report) {
     Deno.removeSync(path);
   });
 
-  const [_, path] = await download_large([ids[choice]]);
+  const [[_, path]] = await download_large([ids[choice]]);
   return Deno.readFileSync(path);
 }
 
