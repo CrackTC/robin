@@ -2,6 +2,7 @@ import OpenAI from "https://deno.land/x/openai@v4.24.0/mod.ts";
 import { encode } from "https://deno.land/std@0.202.0/encoding/base64.ts";
 import { error, log, spawn_get_output } from "../../utils.ts";
 import { Report } from "../base.ts";
+import { CONFIG } from "../../config.ts";
 
 import {
   ChatCompletion,
@@ -16,6 +17,18 @@ import {
   remove_cqcode,
   send_group_at_message,
 } from "../../cqhttp.ts";
+
+class Context {
+  [group_id: number]: {
+    times: number[];
+  };
+
+  constructor() {
+    CONFIG.groups.forEach((group_id) => {
+      this[group_id] = { times: [] };
+    });
+  }
+}
 
 async function search_ill(tags: string[], report: Report) {
   send_group_at_message(
@@ -135,10 +148,30 @@ async function choose_ill(paths: string[]) {
   return choices[Math.floor(Math.random() * choices.length)];
 }
 
+function check_rate_limit(group_id: number) {
+  const now = new Date();
+  const times = CONTEXT[group_id].times;
+  while (times.length > 0 && times[0] < now.getTime() - 3600 * 1000) {
+    times.shift();
+  }
+  if (times.length >= RATE_LIMIT_PER_HOUR) return false;
+  times.push(now.getTime());
+  return true;
+}
+
 export async function search_ill_handler(report: Report) {
   const input = remove_cqcode(report.message).trim();
   if (INPUT_MATCH.some((m) => input.includes(m))) {
     log("search_ill");
+
+    if (!check_rate_limit(report.group_id)) {
+      send_group_at_message(
+        report.group_id,
+        `Rate limit exceeded, current rate limit is ${RATE_LIMIT_PER_HOUR} per hour`,
+        report.sender.user_id,
+      );
+      return;
+    }
 
     const ids = await call_function(await get_tag_reply(input), report);
     const pairs = await download_small(ids);
@@ -221,3 +254,5 @@ const ILL_PROMPT: ChatCompletionMessageParam = {
 };
 
 const SEARCH_ILL_PY = "./handlers/search_ill/search_ill.py";
+const RATE_LIMIT_PER_HOUR = 10;
+const CONTEXT = new Context();
