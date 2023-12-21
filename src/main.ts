@@ -16,11 +16,9 @@ async function request_handler(request: Request) {
   const report = await request.json();
   if (report_pred(report)) {
     report_handlers.forEach((handler) => {
-      try {
-        handler(report);
-      } catch (e) {
-        error(`Error in handler ${handler.name}: ${e}`);
-      }
+      handler(report).catch((e) =>
+        error(`Error in handler ${handler.name}: ${e}`)
+      );
     });
   }
 

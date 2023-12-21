@@ -12,5 +12,5 @@ export interface Report {
 }
 
 export interface ReportHandler {
-  (report: Report): void;
+  (report: Report): Promise<void>;
 }

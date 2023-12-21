@@ -19,14 +19,16 @@ class Context {
 
 const context = new Context();
 
-export const wordcloud_handler = (report: Report) => {
+export function wordcloud_handler(report: Report) {
   const group_id = report.group_id;
   const messages = context[group_id];
 
   const message = remove_cqcode(report.message);
   log(message);
   messages.push(message);
-};
+
+  return Promise.resolve();
+}
 
 let task = Promise.resolve();
 cron(CONFIG.cron, () => {
@@ -49,7 +51,7 @@ cron(CONFIG.cron, () => {
       }
 
       Deno.remove(IMAGE_PATH);
-    });
+    }).catch(error);
   });
 
   task = task.then(() => {

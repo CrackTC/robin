@@ -9,7 +9,7 @@ interface Image {
   path: string;
 }
 
-export const rand_reply_handler = (report: Report) => {
+export function rand_reply_handler(report: Report) {
   if (is_at_self(report.message)) {
     const sender_id = report.sender.user_id;
     const rand = Math.floor(Math.random() * all_list.length);
@@ -24,7 +24,9 @@ export const rand_reply_handler = (report: Report) => {
 
     send_group_at_message(report.group_id, reply, sender_id);
   }
-};
+
+  return Promise.resolve();
+}
 
 const WORD_LIST_PATH = "./data/word_list.json";
 const IMAGE_LIST_PATH = "./data/image_list.json";

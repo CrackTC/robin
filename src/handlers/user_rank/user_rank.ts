@@ -62,7 +62,7 @@ function get_description(stat: GroupStat) {
   return get_description_text(people_count, msg_count, rank);
 }
 
-export const user_rank_handler = (report: Report) => {
+export function user_rank_handler(report: Report) {
   const group_id = report.group_id;
   const name: string = report.sender.card != ""
     ? report.sender.card
@@ -71,7 +71,9 @@ export const user_rank_handler = (report: Report) => {
 
   if (name in user_rank) user_rank[name]++;
   else user_rank[name] = 1;
-};
+
+  return Promise.resolve();
+}
 
 let task = Promise.resolve();
 
@@ -86,7 +88,7 @@ cron(CONFIG.cron, () => {
         error(`send description failed`);
         backup(desc, "result.txt");
       }
-    });
+    }).catch(error);
   });
 
   task = task.then(() => {
