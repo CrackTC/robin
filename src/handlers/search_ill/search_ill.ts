@@ -31,12 +31,12 @@ class Context {
   }
 }
 
-async function search_ill(tags: string[], report: Report) {
-  send_group_at_message(
-    report.group_id,
-    `using tags: [ ${tags} ]`,
-    report.sender.user_id,
-  );
+async function search_ill(tags: string[], _report: Report) {
+  // send_group_at_message(
+  //   report.group_id,
+  //   `using tags: [ ${tags} ]`,
+  //   report.sender.user_id,
+  // );
   while (true) {
     const output = await spawn_get_output(
       ["python3", SEARCH_ILL_PY, "search"].concat(tags),
@@ -53,11 +53,11 @@ async function search_ill(tags: string[], report: Report) {
     if (tags.length == 0) return [];
 
     tags.pop();
-    send_group_at_message(
-      report.group_id,
-      `no illust found, using tags [ ${tags} ]`,
-      report.sender.user_id,
-    );
+    // send_group_at_message(
+    //   report.group_id,
+    //   `no illust found, using tags [ ${tags} ]`,
+    //   report.sender.user_id,
+    // );
   }
 }
 
@@ -139,7 +139,12 @@ async function choose_ill(paths: string[]) {
       type: "image_url",
       image_url: { url: url, detail: "low" },
     };
-  }));
+  })).catch((e) => {
+    error(e);
+    return undefined;
+  });
+ 
+  if (reply === undefined) return Math.floor(Math.random() * paths.length);
 
   const choices: number[] = JSON.parse(reply.choices[0].message.content!);
   log(choices);
