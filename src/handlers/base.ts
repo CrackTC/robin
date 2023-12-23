@@ -1,4 +1,4 @@
-import { error } from "../utils.ts";
+import { error, log } from "../utils.ts";
 
 export interface Report {
   post_type: string;
@@ -66,8 +66,10 @@ export function get_report_handlers() {
 
 for (const dirEntry of Deno.readDirSync("./handlers")) {
   if (dirEntry.isDirectory) {
-    await import(
-      `./handlers/${dirEntry.name}/${dirEntry.name}.ts`
-    ).catch(error);
+    import(
+      `./${dirEntry.name}/${dirEntry.name}.ts`
+    ).catch(error).then((_) => {
+      log(`Loaded handler ${dirEntry.name}`);
+    });
   }
 }
