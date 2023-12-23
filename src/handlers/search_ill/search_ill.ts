@@ -151,7 +151,7 @@ async function choose_ill(paths: string[]) {
 
   log(reply.usage?.total_tokens);
 
-  return choices[Math.floor(Math.random() * choices.length)] - 1;
+  return choices[Math.floor(Math.random() * choices.length)];
 }
 
 function check_rate_limit(group_id: number) {

@@ -22,6 +22,7 @@ def illusts(tags: Iterable[str]):
         ills = api.search_illust(word,
                                  search_target='partial_match_for_tags',
                                  sort='popular_desc',
+                                 duration='within_last_month',
                                  offset=offset).illusts
         if len(ills) == 0:
             return
