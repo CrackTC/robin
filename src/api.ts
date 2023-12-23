@@ -47,19 +47,27 @@ function require_auth(handler: (request: Request) => Response) {
   };
 }
 
+function with_cors(handler: (request: Request) => Response) {
+  return (request: Request) => {
+    const response = handler(request);
+    response.headers.set("Access-Control-Allow-Origin", "*");
+    return response;
+  };
+}
+
 export function api_handler(request: Request) {
   const { pathname } = new URL(request.url);
   switch (pathname) {
     case "/api/get_handlers":
-      return get_handlers(request);
+      return with_cors(get_handlers)(request);
     case "/api/enable_handler":
-      return require_auth(enable_handler)(request);
+      return with_cors(require_auth(enable_handler))(request);
     case "/api/disable_handler":
-      return require_auth(disable_handler)(request);
+      return with_cors(require_auth(disable_handler))(request);
     case "/api/auth":
-      return require_auth(ok)(request);
+      return with_cors(require_auth(ok))(request);
     default:
-      return not_found();
+      return with_cors(not_found)(request);
   }
 }
 
