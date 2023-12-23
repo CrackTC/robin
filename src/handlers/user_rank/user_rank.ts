@@ -3,6 +3,7 @@ import { Report } from "../base.ts";
 import { backup, error, log } from "../../utils.ts";
 import { cron } from "https://deno.land/x/deno_cron@v1.0.0/cron.ts";
 import { send_group_message } from "../../cqhttp.ts";
+import { register_report_handler } from "../base.ts";
 
 class GroupStat {
   user_rank: { [nickname: string]: number } = {};
@@ -95,3 +96,5 @@ cron(CONFIG.cron, () => {
     context.init();
   });
 });
+
+register_report_handler(user_rank_handler);

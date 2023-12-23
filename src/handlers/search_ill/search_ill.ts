@@ -1,8 +1,9 @@
 import OpenAI from "https://deno.land/x/openai@v4.24.0/mod.ts";
 import { encode } from "https://deno.land/std@0.202.0/encoding/base64.ts";
 import { error, log, spawn_get_output } from "../../utils.ts";
-import { Report } from "../base.ts";
+import { register_report_handler, Report } from "../base.ts";
 import { CONFIG } from "../../config.ts";
+import PROMPTS from "./prompts.json" with { type: "json" };
 
 import {
   ChatCompletion,
@@ -206,53 +207,23 @@ export async function search_ill_handler(report: Report) {
 }
 
 const INPUT_MATCH = Deno.env.get("ILL_INPUT_MATCH")?.split(",") || [];
+const RATE_LIMIT_PER_HOUR = Number(Deno.env.get("ILL_RATE_LIMIT_PER_HOUR")) ??
+  10;
 
 const MODEL_TAG = "gpt-4-1106-preview";
 const MODEL_ILL = "gpt-4-vision-preview";
+
 const API_KEY = Deno.env.get("OPENAI_API_KEY") ?? "";
+
 const CLIENT = new OpenAI({ apiKey: API_KEY });
 
-const SEARCH_ILL: ChatCompletionTool = {
-  type: "function",
-  function: {
-    name: "search_ill",
-    description: "Search for illustrations on pixiv based on tags",
-    parameters: {
-      type: "object",
-      properties: {
-        tags: {
-          type: "array",
-          items: {
-            type: "string",
-          },
-          description:
-            "Tags to search for, *must* in English or Japanese, for example: ['オリジナル', '女の子', '水着', 'オリジナル1000users入り', '仕事絵']",
-        },
-      },
-      "required": ["tags"],
-    },
-  },
-};
+const PREFIX = "./handlers/search_ill";
+const SEARCH_ILL_PY = `${PREFIX}/search_ill.py`;
 
-const TAG_PROMPT: ChatCompletionMessageParam = {
-  role: "system",
-  content: "You are helping otakus searching illusts using pixiv tags. " +
-    "Tags must be in Japanese and please use Katakana if necessary, Simplified Chinese not supported. " +
-    "For example: ['オリジナル', '女の子', '水着', 'オリジナル1000users入り', '仕事絵']. " +
-    "Note that too many tags may lead to no result. " +
-    "Only if user explicitly express that he/she want to search for illusts should you provide with non-empty tags. " +
-    "otherwise, provide an empty list.",
-};
+const SEARCH_ILL = PROMPTS.search_ill as ChatCompletionTool;
+const TAG_PROMPT = PROMPTS.tag_prompt as ChatCompletionMessageParam;
+const ILL_PROMPT = PROMPTS.ill_prompt as ChatCompletionMessageParam;
 
-const ILL_PROMPT: ChatCompletionMessageParam = {
-  role: "system",
-  content: "User will send you several illustrations from pixiv," +
-    "please analyze which one you think would be liked by otakus." +
-    "You need not to explain why you choose this one," +
-    "just give the number(s) of that illustration in the format of json array (max 2) " +
-    "without markdown code fence.",
-};
-
-const SEARCH_ILL_PY = "./handlers/search_ill/search_ill.py";
-const RATE_LIMIT_PER_HOUR = 10;
 const CONTEXT = new Context();
+
+register_report_handler(search_ill_handler);

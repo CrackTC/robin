@@ -1,5 +1,6 @@
 import { Report } from "../base.ts";
 import { cq_image, is_at_self, send_group_at_message } from "../../cqhttp.ts";
+import { register_report_handler } from "../base.ts";
 
 interface Word {
   word: string;
@@ -35,3 +36,5 @@ const word_list: Word[] = JSON.parse(Deno.readTextFileSync(WORD_LIST_PATH))
 const image_list: Image[] = JSON.parse(Deno.readTextFileSync(IMAGE_LIST_PATH))
   .map((path: string) => ({ path }));
 const all_list = [...word_list, ...image_list];
+
+register_report_handler(rand_reply_handler);

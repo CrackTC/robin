@@ -1,10 +1,6 @@
+import { api_handler } from "./api.ts";
 import { CONFIG } from "./config.ts";
-import { Report, ReportHandler } from "./handlers/base.ts";
-import { user_rank_handler } from "./handlers/user_rank/user_rank.ts";
-import { wordcloud_handler } from "./handlers/word_cloud/word_cloud.ts";
-import { rand_reply_handler } from "./handlers/rand_reply/rand_reply.ts";
-import { search_ill_handler } from "./handlers/search_ill/search_ill.ts";
-import { error } from "./utils.ts";
+import { handle_report, Report } from "./handlers/base.ts";
 
 function report_pred(report: Report) {
   return (report.post_type == "message") &&
@@ -13,23 +9,17 @@ function report_pred(report: Report) {
 }
 
 async function request_handler(request: Request) {
-  const report = await request.json();
-  if (report_pred(report)) {
-    report_handlers.forEach((handler) => {
-      handler(report).catch((e) =>
-        error(`Error in handler ${handler.name}: ${e}`)
-      );
-    });
+  if (new URL(request.url).pathname.startsWith("/api")) {
+    return api_handler(request);
   }
 
-  // https://docs.go-cqhttp.org/reference/#%E5%BF%AB%E9%80%9F%E6%93%8D%E4%BD%9C
+  const report = await request.json();
+  if (report_pred(report)) {
+    handle_report(report);
+  }
+
+  // https://docs.go-cqhttp.org/reference/#快速操作
   return new Response(null, { status: 204 });
 }
 
-const report_handlers: ReportHandler[] = [
-  user_rank_handler,
-  wordcloud_handler,
-  rand_reply_handler,
-  search_ill_handler,
-];
 Deno.serve({ port: CONFIG.port }, request_handler);

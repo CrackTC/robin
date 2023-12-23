@@ -4,6 +4,7 @@ import { backup, error, log, spawn_set_input } from "../../utils.ts";
 import { cq_image, remove_cqcode } from "../../cqhttp.ts";
 import { Report } from "../base.ts";
 import { cron } from "https://deno.land/x/deno_cron@v1.0.0/cron.ts";
+import { register_report_handler } from "../base.ts";
 
 class Context {
   [group_id: number]: string[];
@@ -61,3 +62,5 @@ cron(CONFIG.cron, () => {
 
 const IMAGE_PATH = "/dev/shm/word_cloud.png";
 const WORD_CLOUD_PY = "./handlers/word_cloud/word_cloud.py";
+
+register_report_handler(wordcloud_handler);
