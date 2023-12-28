@@ -90,12 +90,18 @@ const reloadConfig = debounce(() => {
 
 (async () => {
   for await (const event of configWatcher) {
-    if (
-      event.kind === "modify" &&
-      Deno.realPathSync(event.paths[0]) ===
-        Deno.realPathSync("data/config.json")
-    ) {
-      reloadConfig();
+    try {
+      if (
+        event.kind === "modify" &&
+        Deno.realPathSync(event.paths[0]) ===
+          Deno.realPathSync("data/config.json")
+      ) {
+        reloadConfig();
+      }
+    } catch (e) {
+      if (!(e instanceof Deno.errors.NotFound)) {
+        error(e);
+      }
     }
   }
 })();
