@@ -1,4 +1,4 @@
-import { CONFIG } from "./config.ts";
+import { get_config } from "./config.ts";
 import { sleep } from "https://deno.land/x/sleep@v1.2.1/mod.ts";
 import { error, warn } from "./utils.ts";
 import { encode } from "https://deno.land/std@0.202.0/encoding/base64.ts";
@@ -20,7 +20,7 @@ export function remove_cqcode(text: string) {
 }
 
 export function is_at_self(text: string) {
-  return text.includes(`[CQ:at,qq=${CONFIG.self_id}]`);
+  return text.includes(`[CQ:at,qq=${get_config().self_id}]`);
 }
 
 export async function send_group_message(
@@ -28,16 +28,16 @@ export async function send_group_message(
   message: string,
   parse_cq: boolean,
 ) {
-  const url = CONFIG.api_addr + "/send_group_msg";
+  const url = get_config().api_addr + "/send_group_msg";
 
   const method = "POST";
   const headers = new Headers({ "Content-Type": "application/json" });
   const body = JSON.stringify({ group_id, message, auto_escape: !parse_cq });
   const params = { method, headers, body };
 
-  const interval = CONFIG.retry_interval;
+  const interval = get_config().retry_interval;
 
-  for (let i = 0; i < CONFIG.max_retry + 1; i++) {
+  for (let i = 0; i < get_config().max_retry + 1; i++) {
     try {
       const response = await fetch(url, params);
       if (await is_failed(response.clone())) {
@@ -59,7 +59,7 @@ export async function send_group_message(
   }
 
   error(
-    `failed to send message to group ${group_id} after ${CONFIG.max_retry} retries`,
+    `failed to send message to group ${group_id} after ${get_config().max_retry} retries`,
   );
   return false;
 }

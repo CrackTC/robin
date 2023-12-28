@@ -1,9 +1,9 @@
 import OpenAI from "https://deno.land/x/openai@v4.24.0/mod.ts";
 import { encode } from "https://deno.land/std@0.202.0/encoding/base64.ts";
 import { error, log, spawn_get_output } from "../../utils.ts";
-import { register_report_handler, Report } from "../base.ts";
-import { CONFIG } from "../../config.ts";
+import { register_handler, Report } from "../base.ts";
 import PROMPTS from "./prompts.json" with { type: "json" };
+import { config, on_config_change as base_config_change } from "./config.ts";
 
 import {
   ChatCompletion,
@@ -20,15 +20,7 @@ import {
 } from "../../cqhttp.ts";
 
 class Context {
-  [group_id: number]: {
-    times: number[];
-  };
-
-  constructor() {
-    CONFIG.groups.forEach((group_id) => {
-      this[group_id] = { times: [] };
-    });
-  }
+  [group_id: number]: number[];
 }
 
 async function search_ill(tags: string[], _report: Report) {
@@ -105,8 +97,8 @@ async function download_large(ids: number[]) {
 }
 
 async function get_tag_reply(input: string) {
-  const tag_reply = await CLIENT.chat.completions.create({
-    model: MODEL_TAG,
+  const tag_reply = await client.chat.completions.create({
+    model: config.model_tag,
     messages: [TAG_PROMPT, {
       role: "user",
       content: input,
@@ -120,7 +112,7 @@ async function get_tag_reply(input: string) {
 
 async function get_choice_reply(image_contents: ChatCompletionContentPart[]) {
   const choice_body: ChatCompletionCreateParamsNonStreaming = {
-    model: MODEL_ILL,
+    model: config.model_ill,
     messages: [ILL_PROMPT, {
       role: "user",
       content: image_contents,
@@ -128,7 +120,7 @@ async function get_choice_reply(image_contents: ChatCompletionContentPart[]) {
     max_tokens: 1000,
   };
 
-  return await CLIENT.chat.completions.create(choice_body);
+  return await client.chat.completions.create(choice_body);
 }
 
 async function choose_ill(paths: string[]) {
@@ -143,7 +135,7 @@ async function choose_ill(paths: string[]) {
     error(e);
     return undefined;
   });
- 
+
   if (reply === undefined) return Math.floor(Math.random() * paths.length);
 
   const choices: number[] = JSON.parse(reply.choices[0].message.content!);
@@ -156,24 +148,25 @@ async function choose_ill(paths: string[]) {
 
 function check_rate_limit(group_id: number) {
   const now = new Date();
-  const times = CONTEXT[group_id].times;
+  if (!(group_id in context)) context[group_id] = [];
+  const times = context[group_id];
   while (times.length > 0 && times[0] < now.getTime() - 3600 * 1000) {
     times.shift();
   }
-  if (times.length >= RATE_LIMIT_PER_HOUR) return false;
+  if (times.length >= config.rate_limit_per_hour) return false;
   times.push(now.getTime());
   return true;
 }
 
 export async function search_ill_handler(report: Report) {
   const input = remove_cqcode(report.message).trim();
-  if (INPUT_MATCH.some((m) => input.includes(m))) {
+  if (config.ill_input_match.some((m) => input.includes(m))) {
     log("search_ill");
 
     if (!check_rate_limit(report.group_id)) {
       send_group_at_message(
         report.group_id,
-        `Rate limit exceeded, current rate limit is ${RATE_LIMIT_PER_HOUR} per hour`,
+        `Rate limit exceeded, current rate limit is ${config.rate_limit_per_hour} per hour`,
         report.sender.user_id,
       );
       return;
@@ -211,17 +204,6 @@ export async function search_ill_handler(report: Report) {
   }
 }
 
-const INPUT_MATCH = Deno.env.get("ILL_INPUT_MATCH")?.split(",") || [];
-const RATE_LIMIT_PER_HOUR = Number(Deno.env.get("ILL_RATE_LIMIT_PER_HOUR")) ??
-  10;
-
-const MODEL_TAG = "gpt-4-1106-preview";
-const MODEL_ILL = "gpt-4-vision-preview";
-
-const API_KEY = Deno.env.get("OPENAI_API_KEY") ?? "";
-
-const CLIENT = new OpenAI({ apiKey: API_KEY });
-
 const PREFIX = "./handlers/search_ill";
 const SEARCH_ILL_PY = `${PREFIX}/search_ill.py`;
 
@@ -229,6 +211,19 @@ const SEARCH_ILL = PROMPTS.search_ill as ChatCompletionTool;
 const TAG_PROMPT = PROMPTS.tag_prompt as ChatCompletionMessageParam;
 const ILL_PROMPT = PROMPTS.ill_prompt as ChatCompletionMessageParam;
 
-const CONTEXT = new Context();
+const groups: number[] = [];
+const context = new Context();
 
-register_report_handler(search_ill_handler);
+let client: OpenAI;
+
+function on_config_change() {
+  base_config_change();
+  Deno.env.set("PIXIV_REFRESH_TOKEN", config.pixiv_refresh_token);
+  client = new OpenAI({ apiKey: config.openai_api_key });
+}
+
+register_handler({
+  handle_func: search_ill_handler,
+  groups,
+  on_config_change,
+});

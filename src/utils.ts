@@ -1,3 +1,16 @@
+export function assert(
+  condition: unknown,
+  message?: string,
+): asserts condition {
+  if (!condition) {
+    throw new Error(message);
+  }
+}
+
+export function is_decimal_number(str: string) {
+  return /^\d+$/.test(str);
+}
+
 export function log(...data: unknown[]) {
   console.log(new Date(), ...data);
 }

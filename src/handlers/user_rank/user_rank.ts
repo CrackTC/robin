@@ -1,9 +1,9 @@
-import { CONFIG } from "../../config.ts";
+import { config, on_config_change as base_config_change } from "./config.ts";
 import { Report } from "../base.ts";
 import { backup, error, log } from "../../utils.ts";
-import { cron } from "https://deno.land/x/deno_cron@v1.0.0/cron.ts";
 import { send_group_message } from "../../cqhttp.ts";
-import { register_report_handler } from "../base.ts";
+import { register_handler } from "../base.ts";
+import Cron from "https://deno.land/x/croner@8.0.0/src/croner.js";
 
 class GroupStat {
   user_rank: { [nickname: string]: number } = {};
@@ -18,16 +18,6 @@ class GroupStat {
 
 class Context {
   [group_id: number]: GroupStat;
-
-  init() {
-    CONFIG.groups.forEach((group_id) => {
-      this[group_id] = new GroupStat();
-    });
-  }
-
-  constructor() {
-    this.init();
-  }
 }
 
 interface UserStat {
@@ -65,36 +55,50 @@ function get_description(stat: GroupStat) {
 
 export function user_rank_handler(report: Report) {
   const group_id = report.group_id;
-  const name: string = report.sender.card != ""
-    ? report.sender.card
-    : report.sender.nickname;
-  const { user_rank } = context[group_id];
+  if (groups.includes(group_id)) {
+    if (!(group_id in context)) context[group_id] = new GroupStat();
 
-  if (name in user_rank) user_rank[name]++;
-  else user_rank[name] = 1;
+    const name: string = report.sender.card != ""
+      ? report.sender.card
+      : report.sender.nickname;
+    const { user_rank } = context[group_id];
 
+    if (name in user_rank) user_rank[name]++;
+    else user_rank[name] = 1;
+  }
   return Promise.resolve();
 }
 
-let task = Promise.resolve();
-
+const groups: number[] = [];
 const context = new Context();
 
-cron(CONFIG.cron, () => {
-  CONFIG.groups.forEach((group_id) => {
-    task = task.then(async () => {
-      const desc = get_description(context[group_id]);
-      const success = await send_group_message(group_id, desc, false);
-      if (!success) {
-        error(`send description failed`);
-        backup(desc, "result.txt");
-      }
-    }).catch(error);
-  });
+let task = Promise.resolve();
+let job: Cron;
 
-  task = task.then(() => {
-    context.init();
+function send_description(group_id: number) {
+  task = task.then(async () => {
+    const desc = get_description(context[group_id]);
+    const success = await send_group_message(group_id, desc, false);
+    if (!success) {
+      error(`send description failed`);
+      backup(desc, "result.txt");
+    }
   });
+}
+
+function on_config_change() {
+  base_config_change();
+  if (job !== undefined) job.stop();
+  job = new Cron(config.cron, { name: "user_rank" }, () => {
+    groups.forEach((group_id) => {
+      send_description(group_id);
+      context[group_id] = new GroupStat();
+    });
+  });
+}
+
+register_handler({
+  handle_func: user_rank_handler,
+  groups,
+  on_config_change,
 });
-
-register_report_handler(user_rank_handler);
