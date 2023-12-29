@@ -77,14 +77,14 @@ let job: Cron;
 
 function send_description(group_id: number) {
   task = task.then(async () => {
-    const desc = get_description(context[group_id]);
+    const desc = get_description(context[group_id] ?? new GroupStat());
     context[group_id] = new GroupStat();
     const success = await send_group_message(group_id, desc, false);
     if (!success) {
       error("send description failed");
       backup(desc, "result.txt");
     }
-  });
+  }).catch(error);
 }
 
 function on_config_change() {

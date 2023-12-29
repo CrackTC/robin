@@ -32,7 +32,7 @@ let job: Cron;
 
 function send_word_cloud(group_id: number) {
   task = task.then(async () => {
-    const messages = context[group_id];
+    const messages = context[group_id] ?? [];
     context[group_id] = [];
     if (messages.length === 0) return;
 
