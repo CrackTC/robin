@@ -78,9 +78,10 @@ let job: Cron;
 function send_description(group_id: number) {
   task = task.then(async () => {
     const desc = get_description(context[group_id]);
+    context[group_id] = new GroupStat();
     const success = await send_group_message(group_id, desc, false);
     if (!success) {
-      error(`send description failed`);
+      error("send description failed");
       backup(desc, "result.txt");
     }
   });
@@ -90,10 +91,7 @@ function on_config_change() {
   base_config_change();
   if (job !== undefined) job.stop();
   job = new Cron(config.cron, { name: "user_rank" }, () => {
-    groups.forEach((group_id) => {
-      send_description(group_id);
-      context[group_id] = new GroupStat();
-    });
+    groups.forEach(send_description);
   });
 }
 

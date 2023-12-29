@@ -1,6 +1,6 @@
 import { config, on_config_change as base_config_change } from "./config.ts";
 import { send_group_message } from "../../cqhttp.ts";
-import { backup, error, log, spawn_set_input } from "../../utils.ts";
+import { backup, error, spawn_set_input } from "../../utils.ts";
 import { cq_image, remove_cqcode } from "../../cqhttp.ts";
 import { Report } from "../base.ts";
 import Cron from "https://deno.land/x/croner@8.0.0/src/croner.js";
@@ -33,6 +33,7 @@ let job: Cron;
 function send_word_cloud(group_id: number) {
   task = task.then(async () => {
     const messages = context[group_id];
+    context[group_id] = [];
     if (messages.length === 0) return;
 
     await spawn_set_input([
@@ -60,10 +61,7 @@ function on_config_change() {
   base_config_change();
   if (job !== undefined) job.stop();
   job = new Cron(config.cron, { name: "word_cloud" }, () => {
-    groups.forEach((group_id) => {
-      send_word_cloud(group_id);
-      context[group_id] = [];
-    });
+    groups.forEach(send_word_cloud);
   });
 }
 
