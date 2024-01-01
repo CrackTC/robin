@@ -19,6 +19,13 @@ export function remove_cqcode(text: string) {
   return text.replaceAll(/\[CQ:[^\]]+\]/g, "");
 }
 
+export function unescape_non_cq(text: string) {
+  return text
+    .replaceAll(/&#91;/g, "[")
+    .replaceAll(/&#93;/g, "]")
+    .replaceAll(/&amp;/g, "&");
+}
+
 export function is_at_self(text: string) {
   return text.includes(`[CQ:at,qq=${get_config().self_id}]`);
 }

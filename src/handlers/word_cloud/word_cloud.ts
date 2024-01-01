@@ -1,7 +1,7 @@
 import { config, on_config_change as base_config_change } from "./config.ts";
 import { send_group_message } from "../../cqhttp.ts";
 import { backup, error, spawn_set_input } from "../../utils.ts";
-import { cq_image, remove_cqcode } from "../../cqhttp.ts";
+import { cq_image, remove_cqcode, unescape_non_cq } from "../../cqhttp.ts";
 import { Report } from "../base.ts";
 import Cron from "https://deno.land/x/croner@8.0.0/src/croner.js";
 import { register_handler } from "../base.ts";
@@ -18,7 +18,7 @@ function wordcloud_handler(report: Report) {
   if (groups.includes(group_id)) {
     if (!(group_id in context)) context[group_id] = [];
 
-    const message = remove_cqcode(report.message);
+    const message = unescape_non_cq(remove_cqcode(report.message));
     context[group_id].push(message);
   }
   return Promise.resolve();
