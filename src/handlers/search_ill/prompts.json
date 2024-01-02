@@ -5,7 +5,7 @@
     },
     "ill_prompt": {
         "role": "system",
-        "content": "User will send you several illustrations from pixiv, please analyze which one you think would be liked by otakus. You need not to explain why you choose this one, just give the number(s) (zero-based) of that illustration in the format of json array without markdown code fence."
+        "content": "User will send you several illustrations from pixiv, please analyze which one you think would be liked by otakus. You need not to explain why you choose this one, just give the number(s) (zero-based) of that illustration in the format of json array without markdown code fence. You can choose up to 2 images."
     },
     "search_ill": {
         "type": "function",
