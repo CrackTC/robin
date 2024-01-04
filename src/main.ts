@@ -1,6 +1,6 @@
-import { api_handler } from "./api.ts";
-import { get_config } from "./config.ts";
+import { api_handler, load_api } from "./api/api.ts";
 import { handle_report, load_handlers, Report } from "./handlers/base.ts";
+import { get_config } from "./config.ts";
 
 function report_pred(report: Report) {
   return (report.post_type == "message") &&
@@ -25,6 +25,6 @@ async function request_handler(request: Request) {
   return new Response(null, { status: 204 });
 }
 
-load_handlers().then(() => {
+load_handlers().then(load_api).then(() => {
   Deno.serve({ port: get_config().port }, request_handler);
 });
