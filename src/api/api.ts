@@ -32,10 +32,9 @@ const mux_list: Record<string, typeof mux> = {};
 export async function load_api() {
   for (const dirEntry of Deno.readDirSync("./api")) {
     if (dirEntry.isDirectory) {
-      await import(`./${dirEntry.name}/index.ts`).then((mux) => {
-        mux_list[dirEntry.name] = mux;
-        log(`Loaded mux ${dirEntry.name}`);
-      }).catch(Error);
+      const module = await import(`./${dirEntry.name}/index.ts`);
+      mux_list[dirEntry.name] = module.default;
+      log(`Loaded mux ${dirEntry.name}`);
     }
   }
 }

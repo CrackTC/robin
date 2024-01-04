@@ -25,6 +25,7 @@ async function request_handler(request: Request) {
   return new Response(null, { status: 204 });
 }
 
+const port = get_config().port;
 load_handlers().then(load_api).then(() => {
-  Deno.serve({ port: get_config().port }, request_handler);
+  Deno.serve({ port }, request_handler);
 });

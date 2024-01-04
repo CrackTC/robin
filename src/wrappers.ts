@@ -51,7 +51,15 @@ export function require_args(desired_args: string[]): Wrapper {
 export function json_header(handler: CallableFunction) {
   return (args: unknown) => {
     const response = handler(args);
-    response.headers.set("Content-Type", "application/json");
+    response.headers.set("Content-Type", "application/json; charset=utf-8");
     return response;
+  };
+}
+
+export function task_queue(handler: CallableFunction) {
+  let task = Promise.resolve();
+  return (args: unknown) => {
+    task = task.then(() => handler(args)).catch(error);
+    return Promise.resolve();
   };
 }

@@ -2,7 +2,6 @@ import { config, on_config_change as base_config_change } from "./config.ts";
 import { Report } from "../base.ts";
 import { backup, error, log } from "../../utils.ts";
 import { send_group_message } from "../../cqhttp.ts";
-import { register_handler } from "../base.ts";
 import Cron from "https://deno.land/x/croner@8.0.0/src/croner.js";
 
 class GroupStat {
@@ -72,19 +71,16 @@ export function user_rank_handler(report: Report) {
 const groups: number[] = [];
 const context = new Context();
 
-let task = Promise.resolve();
 let job: Cron;
 
-function send_description(group_id: number) {
-  task = task.then(async () => {
-    const desc = get_description(context[group_id] ?? new GroupStat());
-    context[group_id] = new GroupStat();
-    const success = await send_group_message(group_id, desc, false);
-    if (!success) {
-      error("send description failed");
-      backup(desc, "result.txt");
-    }
-  }).catch(error);
+async function send_description(group_id: number) {
+  const desc = get_description(context[group_id] ?? new GroupStat());
+  context[group_id] = new GroupStat();
+  const success = await send_group_message(group_id, desc, false);
+  if (!success) {
+    error("send description failed");
+    backup(desc, "result.txt");
+  }
 }
 
 function on_config_change() {
@@ -95,8 +91,8 @@ function on_config_change() {
   });
 }
 
-register_handler({
+export default {
   handle_func: user_rank_handler,
   groups,
   on_config_change,
-});
+};

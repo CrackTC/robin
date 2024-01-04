@@ -135,11 +135,9 @@ export function on_config_change() {
 export async function load_handlers() {
   for (const dirEntry of Deno.readDirSync("./handlers")) {
     if (dirEntry.isDirectory) {
-      await import(
-        `./${dirEntry.name}/${dirEntry.name}.ts`
-      ).catch(error).then((_) => {
-        log(`Loaded handler ${dirEntry.name}`);
-      });
+      const module = await import(`./${dirEntry.name}/index.ts`);
+      register_handler(module.default);
+      log(`Loaded handler ${dirEntry.name}`);
     }
   }
   get_config().groups.forEach(add_group_to_handlers);

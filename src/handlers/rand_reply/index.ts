@@ -1,6 +1,5 @@
 import { Report } from "../base.ts";
 import { cq_image, is_at_self, send_group_at_message } from "../../cqhttp.ts";
-import { register_handler } from "../base.ts";
 import { config, on_config_change } from "./config.ts";
 
 const groups: number[] = [];
@@ -28,8 +27,8 @@ async function rand_reply_handler(report: Report) {
   }
 }
 
-register_handler({
+export default {
   handle_func: rand_reply_handler,
   groups,
   on_config_change,
-});
+};

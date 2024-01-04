@@ -1,9 +1,10 @@
 import OpenAI from "https://deno.land/x/openai@v4.24.0/mod.ts";
 import { encode } from "https://deno.land/std@0.202.0/encoding/base64.ts";
 import { error, log, spawn_get_output } from "../../utils.ts";
-import { register_handler, Report } from "../base.ts";
+import { Report } from "../base.ts";
 import PROMPTS from "./prompts.json" with { type: "json" };
 import { config, on_config_change as base_config_change } from "./config.ts";
+import { task_queue, wrap } from "../../wrappers.ts";
 
 import {
   ChatCompletion,
@@ -23,6 +24,7 @@ import {
 
 class Context {
   [group_id: number]: number[];
+  task_queue: Promise<void> = Promise.resolve();
 }
 
 async function search_ill(tags: string[], _report: Report) {
@@ -226,8 +228,8 @@ function on_config_change() {
   client = new OpenAI({ apiKey: config.openai_api_key });
 }
 
-register_handler({
-  handle_func: search_ill_handler,
+export default {
+  handle_func: wrap(search_ill_handler).with(task_queue).call,
   groups,
   on_config_change,
-});
+};
