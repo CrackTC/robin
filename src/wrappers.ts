@@ -8,7 +8,7 @@ function this_with(this_fn: CallableFunction) {
   return (wrapper: Wrapper) => {
     const new_fn = wrapper(this_fn);
     return {
-      call: this_fn,
+      call: new_fn,
       with: this_with(new_fn),
     };
   };
