@@ -19,12 +19,10 @@ const groups: number[] = [];
 
 function wordcloud_handler(report: Report) {
   const group_id = report.group_id;
-  if (groups.includes(group_id)) {
-    if (!(group_id in context)) context[group_id] = [];
+  if (!(group_id in context)) context[group_id] = [];
 
-    const message = unescape_non_cq(remove_cqcode(report.message));
-    context[group_id].push(message);
-  }
+  const message = unescape_non_cq(remove_cqcode(report.message));
+  context[group_id].push(message);
   return Promise.resolve();
 }
 
@@ -71,6 +69,7 @@ function on_config_change() {
 }
 
 export default {
+  name: "word_cloud",
   handle_func: wordcloud_handler,
   groups,
   on_config_change,

@@ -2,33 +2,27 @@ import { Report } from "../base.ts";
 import { cq_image, is_at_self, send_group_at_message } from "../../cqhttp.ts";
 import { config, on_config_change } from "./config.ts";
 
-const groups: number[] = [];
-
 async function rand_reply_handler(report: Report) {
-  if (is_at_self(report.message) && groups.includes(report.group_id)) {
-    const sender_id = report.sender.user_id;
+  if (!is_at_self(report.message)) return;
 
-    const text_len = config.texts.length;
-    const image_len = config.image_paths.length;
-    const rand = Math.floor(Math.random() * (text_len + image_len));
+  const sender_id = report.sender.user_id;
 
-    const is_text = rand < text_len;
+  const text_len = config.texts.length;
+  const image_len = config.image_paths.length;
+  const rand = Math.floor(Math.random() * (text_len + image_len));
 
-    const entry = is_text
-      ? config.texts[rand]
-      : config.image_paths[rand - text_len];
+  const is_text = rand < text_len;
 
-    let reply = entry;
-    if (!is_text) {
-      reply = cq_image(Deno.readFileSync(entry));
-    }
+  const entry = is_text
+    ? config.texts[rand]
+    : config.image_paths[rand - text_len];
 
-    await send_group_at_message(report.group_id, reply, sender_id);
-  }
+  const reply = is_text ? entry : cq_image(Deno.readFileSync(entry));
+  await send_group_at_message(report.group_id, reply, sender_id);
 }
 
 export default {
+  name: "rand_reply",
   handle_func: rand_reply_handler,
-  groups,
   on_config_change,
 };

@@ -54,17 +54,15 @@ function get_description(stat: GroupStat) {
 
 export function user_rank_handler(report: Report) {
   const group_id = report.group_id;
-  if (groups.includes(group_id)) {
-    if (!(group_id in context)) context[group_id] = new GroupStat();
+  if (!(group_id in context)) context[group_id] = new GroupStat();
 
-    const name: string = report.sender.card != ""
-      ? report.sender.card
-      : report.sender.nickname;
-    const { user_rank } = context[group_id];
+  const name: string = report.sender.card != ""
+    ? report.sender.card
+    : report.sender.nickname;
+  const { user_rank } = context[group_id];
 
-    if (name in user_rank) user_rank[name]++;
-    else user_rank[name] = 1;
-  }
+  if (name in user_rank) user_rank[name]++;
+  else user_rank[name] = 1;
   return Promise.resolve();
 }
 
@@ -92,6 +90,7 @@ function on_config_change() {
 }
 
 export default {
+  name: "user_rank",
   handle_func: user_rank_handler,
   groups,
   on_config_change,

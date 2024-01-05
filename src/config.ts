@@ -95,13 +95,9 @@ const reloadConfig = debounce(() => {
         event.kind === "modify" &&
         Deno.realPathSync(event.paths[0]) ===
           Deno.realPathSync("data/config.json")
-      ) {
-        reloadConfig();
-      }
+      ) reloadConfig();
     } catch (e) {
-      if (!(e instanceof Deno.errors.NotFound)) {
-        error(e);
-      }
+      if (!(e instanceof Deno.errors.NotFound)) error(e);
     }
   }
 })();

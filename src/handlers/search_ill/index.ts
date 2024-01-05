@@ -163,51 +163,50 @@ function check_rate_limit(group_id: number) {
 }
 
 export async function search_ill_handler(report: Report) {
-  if (is_at_self(report.message) && groups.includes(report.group_id)) {
-    const input = unescape_non_cq(remove_cqcode(report.message).trim());
-    if (config.ill_input_match.some((m) => input.includes(m))) {
-      log("search_ill");
+  if (!is_at_self(report.message)) return;
 
-      if (!check_rate_limit(report.group_id)) {
-        send_group_at_message(
-          report.group_id,
-          `Rate limit exceeded, current rate limit is ${config.rate_limit_per_hour} per hour`,
-          report.sender.user_id,
-        );
-        return;
-      }
+  const input = unescape_non_cq(remove_cqcode(report.message).trim());
+  if (!config.ill_input_match.some((m) => input.includes(m))) return;
 
-      const ids = await call_function(await get_tag_reply(input), report);
-      const pairs = await download_small(ids);
-      if (pairs.length == 0) {
-        log("No ill found");
-        send_group_at_message(
-          report.group_id,
-          "再怎么找也找不到啦>_<",
-          report.sender.user_id,
-        );
-        return;
-      }
-      log(pairs);
-
-      const choice = await choose_ill(pairs.map(([_, path]) => path));
-      let url = "";
-      pairs.forEach(([id, path], index) => {
-        Deno.removeSync(path);
-        if (index == choice) {
-          url = `https://www.pixiv.net/artworks/${id}`;
-          log("choice: ", url);
-        }
-      });
-
-      const [[_, path]] = await download_large([ids[choice]]);
-      send_group_at_message(
-        report.group_id,
-        [cq_image(Deno.readFileSync(path)), url].join("\n"),
-        report.sender.user_id,
-      );
-    }
+  log("search_ill");
+  if (!check_rate_limit(report.group_id)) {
+    send_group_at_message(
+      report.group_id,
+      `Rate limit exceeded, current rate limit is ${config.rate_limit_per_hour} per hour`,
+      report.sender.user_id,
+    );
+    return;
   }
+
+  const ids = await call_function(await get_tag_reply(input), report);
+  const pairs = await download_small(ids);
+  if (pairs.length == 0) {
+    log("No ill found");
+    send_group_at_message(
+      report.group_id,
+      "再怎么找也找不到啦>_<",
+      report.sender.user_id,
+    );
+    return;
+  }
+
+  log(pairs);
+  const choice = await choose_ill(pairs.map(([_, path]) => path));
+  let url = "";
+  pairs.forEach(([id, path], index) => {
+    Deno.removeSync(path);
+    if (index == choice) {
+      url = `https://www.pixiv.net/artworks/${id}`;
+      log("choice: ", url);
+    }
+  });
+
+  const [[_, path]] = await download_large([ids[choice]]);
+  send_group_at_message(
+    report.group_id,
+    [cq_image(Deno.readFileSync(path)), url].join("\n"),
+    report.sender.user_id,
+  );
 }
 
 const PREFIX = "./handlers/search_ill";
@@ -217,7 +216,6 @@ const SEARCH_ILL = PROMPTS.search_ill as ChatCompletionTool;
 const TAG_PROMPT = PROMPTS.tag_prompt as ChatCompletionMessageParam;
 const ILL_PROMPT = PROMPTS.ill_prompt as ChatCompletionMessageParam;
 
-const groups: number[] = [];
 const context = new Context();
 
 let client: OpenAI;
@@ -229,7 +227,7 @@ function on_config_change() {
 }
 
 export default {
+  name: "search_ill",
   handle_func: wrap(search_ill_handler).with(task_queue).call,
-  groups,
   on_config_change,
 };
