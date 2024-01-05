@@ -28,7 +28,7 @@ export function handle_report(report: Report) {
   Object.values(report_handlers).forEach((handler) => {
     if (handler.enabled && handler.groups.includes(report.group_id)) {
       handler.handle_func(report).catch((e) =>
-        error(`Error in handler ${handler.handle_func.name}: ${e}`)
+        error(`Error in handler ${handler.name}: ${e}`)
       );
     }
   });
@@ -119,6 +119,8 @@ export async function load_handlers() {
         on_config_change: module.default.on_config_change,
         enabled: true,
       };
+
+      module.default.on_config_change();
       log(`Loaded handler ${module.default.name}`);
     }
   }
