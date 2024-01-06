@@ -4,7 +4,7 @@ import { Report } from "../cqhttp.ts";
 
 interface ReportHandler {
   name: string;
-  handle_func: { (report: Report): Promise<void> };
+  handle_func: { (report: Report): Promise<void> | void };
   groups: number[];
   on_config_change: { (): void };
   enabled: boolean;
@@ -12,31 +12,34 @@ interface ReportHandler {
 
 const report_handlers: { [name: string]: ReportHandler } = {};
 
-export function handle_report(report: Report) {
-  Object.values(report_handlers).forEach((handler) => {
-    if (handler.enabled && handler.groups.includes(report.group_id)) {
-      handler.handle_func(report).catch((e) =>
-        error(`Error in handler ${handler.name}: ${e}`)
-      );
-    }
-  });
-}
+export const handle_report = (report: Report) =>
+  Object.values(report_handlers)
+    .filter((handler) =>
+      handler.enabled && handler.groups.includes(report.group_id)
+    )
+    .forEach(async (handler) => {
+      try {
+        await handler.handle_func(report);
+      } catch (e) {
+        error(`Error in handler ${handler.name}: ${e}`);
+      }
+    });
 
-export function disable_handler(handler_name: string) {
+export const disable_handler = (handler_name: string) => {
   if (handler_name in report_handlers) {
     report_handlers[handler_name].enabled = false;
     return true;
   }
   return false;
-}
+};
 
-export function enable_handler(handler_name: string) {
+export const enable_handler = (handler_name: string) => {
   if (handler_name in report_handlers) {
     report_handlers[handler_name].enabled = true;
     return true;
   }
   return false;
-}
+};
 
 export function get_handlers() {
   return Object.values(report_handlers).map((item) => ({
