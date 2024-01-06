@@ -1,15 +1,15 @@
 import { api_handler, load_api } from "./api/api.ts";
-import { handle_report, load_handlers, Report } from "./handlers/base.ts";
+import { handle_report, load_handlers } from "./handlers/base.ts";
+import { Report } from "./cqhttp.ts";
 import { get_config } from "./config.ts";
 
-function report_pred(report: Report) {
-  return (report.post_type == "message") &&
-    report.message_type == "group" &&
-    report.sub_type == "normal" &&
-    get_config().groups.includes(report.group_id ?? 0);
-}
+const report_pred = (report: Report) =>
+  report.post_type == "message" &&
+  report.message_type == "group" &&
+  report.sub_type == "normal" &&
+  get_config().groups.includes(report.group_id ?? 0);
 
-async function request_handler(request: Request) {
+const request_handler = async (request: Request) => {
   if (new URL(request.url).pathname.startsWith("/api")) {
     return api_handler(request);
   } else if (request.method != "POST") {
@@ -17,15 +17,13 @@ async function request_handler(request: Request) {
   }
 
   const report = await request.json();
-  if (report_pred(report)) {
-    handle_report(report);
-  }
+  if (report_pred(report)) handle_report(report);
 
   // https://docs.go-cqhttp.org/reference/#快速操作
   return new Response(null, { status: 204 });
-}
+};
 
 const port = get_config().port;
-load_handlers().then(load_api).then(() => {
-  Deno.serve({ port }, request_handler);
-});
+await load_handlers();
+await load_api();
+Deno.serve({ port }, request_handler);

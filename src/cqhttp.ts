@@ -3,38 +3,44 @@ import { sleep } from "https://deno.land/x/sleep@v1.2.1/mod.ts";
 import { error, warn } from "./utils.ts";
 import { encode } from "https://deno.land/std@0.202.0/encoding/base64.ts";
 
-async function is_failed(response: Response) {
-  return (await response.json()).status == "failed";
+export interface Report {
+  post_type: string;
+  message_type: string;
+  sub_type: string;
+  group_id: number;
+  message: string;
+  sender: {
+    user_id: number;
+    nickname: string;
+    card: string;
+  };
 }
 
-export function cq_image(data: Uint8Array) {
-  return `[CQ:image,file=base64://${encode(data)}]`;
-}
+const is_failed = async (response: Response) =>
+  (await response.json()).status == "failed";
 
-export function cq_at(at: number) {
-  return `[CQ:at,qq=${at}]`;
-}
+export const cq_image = (data: Uint8Array) =>
+  `[CQ:image,file=base64://${encode(data)}]`;
 
-export function remove_cqcode(text: string) {
-  return text.replaceAll(/\[CQ:[^\]]+\]/g, "");
-}
+export const cq_at = (at: number) => `[CQ:at,qq=${at}]`;
 
-export function unescape_non_cq(text: string) {
-  return text
+export const remove_cqcode = (text: string) =>
+  text.replaceAll(/\[CQ:[^\]]+\]/g, "");
+
+export const unescape_non_cq = (text: string) =>
+  text
     .replaceAll(/&#91;/g, "[")
     .replaceAll(/&#93;/g, "]")
     .replaceAll(/&amp;/g, "&");
-}
 
-export function is_at_self(text: string) {
-  return text.includes(`[CQ:at,qq=${get_config().self_id}]`);
-}
+export const is_at_self = (text: string) =>
+  text.includes(`[CQ:at,qq=${get_config().self_id}]`);
 
-export async function send_group_message(
+export const send_group_message = async (
   group_id: number,
   message: string,
   parse_cq: boolean,
-) {
+) => {
   const url = get_config().api_addr + "/send_group_msg";
 
   const method = "POST";
@@ -69,12 +75,10 @@ export async function send_group_message(
     `failed to send message to group ${group_id} after ${get_config().max_retry} retries`,
   );
   return false;
-}
+};
 
-export function send_group_at_message(
+export const send_group_at_message = (
   group_id: number,
   message: string,
   at: number,
-) {
-  return send_group_message(group_id, cq_at(at) + message, true);
-}
+) => send_group_message(group_id, cq_at(at) + message, true);

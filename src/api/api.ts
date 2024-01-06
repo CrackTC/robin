@@ -10,26 +10,24 @@ function mux(path: string[]) {
   return sub_mux(path);
 }
 
-function request2args(request: Request) {
+const request2args = (request: Request) => {
   const url = new URL(request.url);
   const args: Record<string, string> = {};
   for (const [key, value] of url.searchParams) {
     args[key] = value;
   }
   return args;
-}
+};
 
-export function api_handler(request: Request) {
-  const { pathname } = new URL(request.url);
-  return mux(pathname.split("/").filter((x) => x !== "").slice(1))
+export const api_handler = (request: Request) =>
+  mux(new URL(request.url).pathname.split("/").filter((x) => x !== "").slice(1))
     .with(add_cors)
     .with(json_header)
     .call(request2args(request));
-}
 
 const mux_list: Record<string, typeof mux> = {};
 
-export async function load_api() {
+export const load_api = async () => {
   for (const dirEntry of Deno.readDirSync("./api")) {
     if (dirEntry.isDirectory) {
       const module = await import(`./${dirEntry.name}/index.ts`);
@@ -37,4 +35,4 @@ export async function load_api() {
       log(`Loaded mux ${dirEntry.name}`);
     }
   }
-}
+};

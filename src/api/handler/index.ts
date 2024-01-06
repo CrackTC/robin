@@ -19,7 +19,7 @@ const groups = (args: Record<string, string>) => {
   return groups === null ? fail() : ok(groups);
 };
 
-export default function mux(path: string[]) {
+export default (path: string[]) => {
   switch (path.shift()) {
     case "all":
       return wrap(all);
@@ -38,4 +38,4 @@ export default function mux(path: string[]) {
     default:
       return wrap(() => fail());
   }
-}
+};

@@ -1,18 +1,6 @@
 import { error, log } from "../utils.ts";
 import { get_config } from "../config.ts";
-
-export interface Report {
-  post_type: string;
-  message_type: string;
-  sub_type: string;
-  group_id: number;
-  message: string;
-  sender: {
-    user_id: number;
-    nickname: string;
-    card: string;
-  };
-}
+import { Report } from "../cqhttp.ts";
 
 interface ReportHandler {
   name: string;
@@ -108,6 +96,8 @@ export function on_config_change() {
   });
 }
 
+export const get_handler_info = (name: string) => report_handlers[name];
+
 export async function load_handlers() {
   for (const dirEntry of Deno.readDirSync("./handlers")) {
     if (dirEntry.isDirectory) {
@@ -115,8 +105,8 @@ export async function load_handlers() {
       report_handlers[module.default.name] = {
         name: module.default.name,
         handle_func: module.default.handle_func,
-        groups: module.default.groups ?? [],
         on_config_change: module.default.on_config_change,
+        groups: [],
         enabled: true,
       };
 
