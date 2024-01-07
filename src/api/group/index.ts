@@ -6,6 +6,7 @@ import {
 import { is_decimal_number } from "../../utils.ts";
 import { fail, ok } from "../common.ts";
 import { require_args, verify_token, wrap } from "../../wrappers.ts";
+import { ApiHandler } from "../api.ts";
 
 const all = () => ok(get_groups());
 
@@ -34,7 +35,7 @@ const remove = (args: Record<string, string>) => {
 export default function mux(path: string[]) {
   switch (path.shift()) {
     case "all":
-      return wrap(all)
+      return wrap<ApiHandler>(all)
         .with(verify_token);
     case "add":
       return wrap(add)

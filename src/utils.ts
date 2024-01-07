@@ -1,9 +1,9 @@
-export const assert = (
-  condition: unknown,
+export function assert(
+  condition: boolean,
   message?: string,
-): asserts condition => {
+): asserts condition {
   if (!condition) throw new Error(message);
-};
+}
 
 export const is_decimal_number = (str: string) => /^\d+$/.test(str);
 

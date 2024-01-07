@@ -2,9 +2,11 @@ import { error, log } from "../utils.ts";
 import { get_config } from "../config.ts";
 import { Report } from "../cqhttp.ts";
 
+export type ReportHandleFunc = (report: Report) => Promise<void> | void;
+
 interface ReportHandler {
   name: string;
-  handle_func: { (report: Report): Promise<void> | void };
+  handle_func: ReportHandleFunc;
   groups: number[];
   on_config_change: { (): void };
   enabled: boolean;

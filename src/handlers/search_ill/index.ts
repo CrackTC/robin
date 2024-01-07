@@ -2,7 +2,7 @@ import OpenAI from "https://deno.land/x/openai@v4.24.0/mod.ts";
 import { encode } from "https://deno.land/std@0.202.0/encoding/base64.ts";
 import { error, log, spawn_get_output } from "../../utils.ts";
 import { config, on_config_change as base_config_change } from "./config.ts";
-import { task_queue, wrap } from "../../wrappers.ts";
+import { rate_limit, task_queue, wrap } from "../../wrappers.ts";
 import PROMPTS from "./prompts.json" with { type: "json" };
 
 import {
@@ -20,10 +20,7 @@ import {
   send_group_at_message,
   unescape_non_cq,
 } from "../../cqhttp.ts";
-
-class Context {
-  [group_id: number]: number[];
-}
+import { ReportHandleFunc } from "../base.ts";
 
 const search_ill = async (tags: string[]) => {
   while (true) {
@@ -118,19 +115,6 @@ async function choose_ill(paths: string[]) {
   return choices[Math.floor(Math.random() * choices.length)];
 }
 
-const check_rate_limit = (group_id: number) => {
-  if (!(group_id in context)) context[group_id] = [];
-  const times = context[group_id];
-
-  const now = new Date();
-  while (times.length > 0 && times[0] < now.getTime() - 3600 * 1000) {
-    times.shift();
-  }
-  if (times.length >= config.rate_limit_per_hour) return false;
-  times.push(now.getTime());
-  return true;
-};
-
 const handle_func = async (report: Report) => {
   if (!is_at_self(report.message)) return;
 
@@ -138,14 +122,6 @@ const handle_func = async (report: Report) => {
   if (!config.ill_input_match.some((m) => input.includes(m))) return;
 
   log("search_ill");
-  if (!check_rate_limit(report.group_id)) {
-    send_group_at_message(
-      report.group_id,
-      `Rate limit exceeded, current rate limit is ${config.rate_limit_per_hour} per hour`,
-      report.sender.user_id,
-    );
-    return;
-  }
 
   const ids = await call_function(await get_tag_reply(input));
   const pairs = await download_small(ids);
@@ -185,8 +161,6 @@ const SEARCH_ILL = PROMPTS.search_ill as ChatCompletionTool;
 const TAG_PROMPT = PROMPTS.tag_prompt as ChatCompletionMessageParam;
 const ILL_PROMPT = PROMPTS.ill_prompt as ChatCompletionMessageParam;
 
-const context = new Context();
-
 let client: OpenAI;
 
 const on_config_change = () => {
@@ -197,6 +171,8 @@ const on_config_change = () => {
 
 export default {
   name: "search_ill",
-  handle_func: wrap(handle_func).with(task_queue).call,
+  handle_func: wrap<ReportHandleFunc>(handle_func).with(task_queue).with(
+    rate_limit(() => config.rate_limit_per_hour, () => 3600 * 1000),
+  ).call,
   on_config_change,
 };

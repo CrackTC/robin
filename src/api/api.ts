@@ -2,11 +2,13 @@ import { add_cors, json_header, wrap } from "../wrappers.ts";
 import { fail } from "./common.ts";
 import { log } from "../utils.ts";
 
+export type ApiHandler = (args: Record<string, string>) => Response;
+
 function mux(path: string[]) {
   const name = path.shift();
-  if (name === undefined) return wrap(() => fail());
+  if (name === undefined) return wrap<ApiHandler>(() => fail());
   const sub_mux = mux_list[name];
-  if (sub_mux === undefined) return wrap(() => fail());
+  if (sub_mux === undefined) return wrap<ApiHandler>(() => fail());
   return sub_mux(path);
 }
 

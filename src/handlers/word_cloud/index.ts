@@ -70,9 +70,7 @@ const send_word_cloud = async (group_id: number) => {
 
 let job: Cron;
 
-const send_queued = wrap(send_word_cloud)
-  .with(task_queue)
-  .call as typeof send_word_cloud;
+const send_queued = wrap(send_word_cloud).with(task_queue).call;
 
 const on_config_change = () => {
   base_config_change();
