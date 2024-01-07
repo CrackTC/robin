@@ -1,4 +1,5 @@
 import Cron from "https://deno.land/x/croner@8.0.0/src/croner.js";
+import db from "../../db.ts";
 import { get_handler_info } from "../base.ts";
 import { backup, error, spawn_set_input } from "../../utils.ts";
 import { config, on_config_change as base_config_change } from "./config.ts";
@@ -11,28 +12,45 @@ import {
   unescape_non_cq,
 } from "../../cqhttp.ts";
 
-class Context {
-  [group_id: number]: string[];
-}
+const NAME = "word_cloud";
 
-const context = new Context();
+db.execute(`
+  CREATE TABLE IF NOT EXISTS ${NAME} (
+    group_id INTEGER NOT NULL,
+    message TEXT NOT NULL
+  )
+`);
+
+const insert = (group_id: number, message: string) =>
+  db.query(
+    `INSERT INTO ${NAME} (group_id, message) VALUES (?, ?)`,
+    [group_id, message],
+  );
+
+const get_group_messages = (group_id: number) =>
+  db.query<[string]>(
+    `SELECT message FROM ${NAME} WHERE group_id = ?`,
+    [group_id],
+  ).map((row) => row[0]);
+
+const clear_group = (group_id: number) =>
+  db.query(
+    `DELETE FROM ${NAME} WHERE group_id = ?`,
+    [group_id],
+  );
 
 const handle_func = (report: Report) => {
   const group_id = report.group_id;
-  if (!(group_id in context)) context[group_id] = [];
-
   const message = unescape_non_cq(remove_cqcode(report.message));
-  context[group_id].push(message);
+  insert(group_id, message);
 };
 
-const IMAGE_PATH = "/dev/shm/word_cloud.png";
-const WORD_CLOUD_PY = "./handlers/word_cloud/word_cloud.py";
-
-let job: Cron;
+const IMAGE_PATH = `/dev/shm/${NAME}.png`;
+const WORD_CLOUD_PY = `./handlers/${NAME}/word_cloud.py`;
 
 const send_word_cloud = async (group_id: number) => {
-  const messages = context[group_id] ?? [];
-  context[group_id] = [];
+  const messages = get_group_messages(group_id);
+  clear_group(group_id);
   if (messages.length === 0) return;
 
   await spawn_set_input([
@@ -46,9 +64,11 @@ const send_word_cloud = async (group_id: number) => {
   const success = await send_group_message(group_id, cq_image(image), true);
   if (!success) {
     error("send image failed");
-    backup(image, "word_cloud.png");
+    backup(image, `${NAME}.png`);
   }
 };
+
+let job: Cron;
 
 const send_queued = wrap(send_word_cloud)
   .with(task_queue)
@@ -62,8 +82,6 @@ const on_config_change = () => {
     if (info.enabled) info.groups.forEach(send_queued);
   });
 };
-
-const NAME = "word_cloud";
 
 export default {
   name: NAME,
