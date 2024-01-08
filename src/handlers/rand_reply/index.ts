@@ -1,13 +1,16 @@
 import { config, on_config_change } from "./config.ts";
 import {
-  cq_image,
   is_at_self,
-  Report,
-  send_group_at_message,
-} from "../../cqhttp.ts";
+  mk_image,
+  mk_reply,
+  mk_text,
+  send_group_message,
+} from "../../onebot/cqhttp.ts";
+import { GroupMessageEvent } from "../../onebot/types/event/message.ts";
+import { GroupEventHandler } from "../base.ts";
 
-const handle_func = async (report: Report) => {
-  if (!is_at_self(report.message)) return;
+const handle_func = async (event: GroupMessageEvent) => {
+  if (!is_at_self(event.message)) return;
 
   const text_len = config.texts.length;
   const image_len = config.image_paths.length;
@@ -19,12 +22,14 @@ const handle_func = async (report: Report) => {
     ? config.texts[rand]
     : config.image_paths[rand - text_len];
 
-  const reply = is_text ? entry : cq_image(Deno.readFileSync(entry));
-  await send_group_at_message(report.group_id, reply, report.sender.user_id);
+  const content = is_text ? mk_text(entry) : mk_image(Deno.readFileSync(entry));
+  await send_group_message(event.group_id, [mk_reply(event), content]);
 };
 
-export default {
+const rand_reply: GroupEventHandler = {
   name: "rand_reply",
   handle_func,
   on_config_change,
 };
+
+export default rand_reply;

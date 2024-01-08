@@ -1,9 +1,10 @@
 import Cron from "https://deno.land/x/croner@8.0.0/src/croner.js";
 import db from "../../db.ts";
-import { get_handler_info } from "../base.ts";
+import { get_handler_info, GroupEventHandler } from "../base.ts";
 import { backup, error } from "../../utils.ts";
 import { config, on_config_change as base_config_change } from "./config.ts";
-import { Report, send_group_message } from "../../cqhttp.ts";
+import { mk_text, send_group_message } from "../../onebot/cqhttp.ts";
+import { GroupMessageEvent } from "../../onebot/types/event/message.ts";
 
 const NAME = "user_rank";
 
@@ -66,18 +67,18 @@ const get_description = (group_id: number) => {
   return get_description_text(people_count, msg_count, rank);
 };
 
-const handle_func = (report: Report) => {
-  const group_id = report.group_id;
-  const name: string = report.sender.card != ""
-    ? report.sender.card
-    : report.sender.nickname;
+const handle_func = (event: GroupMessageEvent) => {
+  const group_id = event.group_id;
+  const name = event.sender.card != null
+    ? event.sender.card
+    : event.sender.nickname;
   insert(group_id, name);
 };
 
 const send_description = async (group_id: number) => {
   const desc = get_description(group_id);
   clear_group(group_id);
-  const success = await send_group_message(group_id, desc, false);
+  const success = await send_group_message(group_id, [mk_text(desc)]);
   if (!success) {
     error("send description failed");
     backup(desc, `${NAME}.txt`);
@@ -95,8 +96,10 @@ const on_config_change = () => {
   });
 };
 
-export default {
+const user_rank: GroupEventHandler = {
   name: NAME,
   handle_func,
   on_config_change,
 };
+
+export default user_rank;

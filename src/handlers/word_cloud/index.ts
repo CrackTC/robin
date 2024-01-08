@@ -1,16 +1,11 @@
 import Cron from "https://deno.land/x/croner@8.0.0/src/croner.js";
 import db from "../../db.ts";
-import { get_handler_info } from "../base.ts";
+import { get_handler_info, GroupEventHandler } from "../base.ts";
 import { backup, error, spawn_set_input } from "../../utils.ts";
 import { config, on_config_change as base_config_change } from "./config.ts";
 import { task_queue, wrap } from "../../wrappers.ts";
-import {
-  cq_image,
-  remove_cqcode,
-  Report,
-  send_group_message,
-  unescape_non_cq,
-} from "../../cqhttp.ts";
+import { mk_image, send_group_message } from "../../onebot/cqhttp.ts";
+import { GroupMessageEvent } from "../../onebot/types/event/message.ts";
 
 const NAME = "word_cloud";
 
@@ -39,9 +34,16 @@ const clear_group = (group_id: number) =>
     [group_id],
   );
 
-const handle_func = (report: Report) => {
-  const group_id = report.group_id;
-  const message = unescape_non_cq(remove_cqcode(report.message));
+const handle_func = (event: GroupMessageEvent) => {
+  const group_id = event.group_id;
+  let message;
+  if (typeof event.message === "string") {
+    message = event.message;
+  } else {
+    message = event.message.map((seg) =>
+      seg.type == "text" ? seg.data.text : ""
+    ).join(" ");
+  }
   insert(group_id, message);
 };
 
@@ -61,7 +63,7 @@ const send_word_cloud = async (group_id: number) => {
 
   const image = Deno.readFileSync(IMAGE_PATH);
   Deno.removeSync(IMAGE_PATH);
-  const success = await send_group_message(group_id, cq_image(image), true);
+  const success = await send_group_message(group_id, [mk_image(image)]);
   if (!success) {
     error("send image failed");
     backup(image, `${NAME}.png`);
@@ -81,8 +83,10 @@ const on_config_change = () => {
   });
 };
 
-export default {
+const word_cloud: GroupEventHandler = {
   name: NAME,
   handle_func,
   on_config_change,
 };
+
+export default word_cloud;

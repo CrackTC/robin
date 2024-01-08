@@ -13,7 +13,7 @@ class Config {
   groups: number[];
   max_retry: number;
   retry_interval: number;
-  handlers: { [key: string]: unknown };
+  handlers: { [key: string]: object };
 
   constructor() {
     this.self_id = 0;
@@ -30,7 +30,7 @@ class Config {
 
 function readConfig() {
   const json = JSON.parse(Deno.readTextFileSync("data/config.json"));
-  return Object.assign({}, new Config(), json);
+  return { ...new Config(), ...json };
 }
 
 function verifyConfig(config: Config) {

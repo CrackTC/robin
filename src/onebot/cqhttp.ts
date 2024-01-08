@@ -1,39 +1,62 @@
-import { get_config } from "./config.ts";
+import { get_config } from "../config.ts";
+import { error, log, warn } from "../utils.ts";
+import { wsApi } from "../main.ts";
 import { sleep } from "https://deno.land/x/sleep@v1.2.1/mod.ts";
-import { error, warn } from "./utils.ts";
 import { encode } from "https://deno.land/std@0.202.0/encoding/base64.ts";
-import { wsApi } from "./main.ts";
 import { WebSocketClient } from "https://deno.land/x/websocket@v0.1.4/mod.ts";
+import {
+  AtSegment,
+  ImageSegment,
+  Message,
+  ReplySegment,
+  TextSegment,
+} from "./types/message.ts";
+import { Event } from "./types/event/common.ts";
+import { MessageEvent } from "./types/event/message.ts";
 
-export interface Report {
-  post_type: string;
-  message_type: string;
-  sub_type: string;
-  group_id: number;
-  message: string;
-  sender: {
-    user_id: number;
-    nickname: string;
-    card: string;
-  };
-}
+export const mk_text = (text: string): TextSegment => ({
+  type: "text",
+  data: {
+    text,
+  },
+});
 
-export const cq_image = (data: Uint8Array) =>
-  `[CQ:image,file=base64://${encode(data)}]`;
+export const mk_image = (data: Uint8Array): ImageSegment => (
+  {
+    type: "image",
+    data: {
+      file: `base64://${encode(data)}`,
+    },
+  }
+);
 
-export const cq_at = (at: number) => `[CQ:at,qq=${at}]`;
+export const mk_at = (at: number | "all"): AtSegment => ({
+  type: "at",
+  data: {
+    qq: `${at}`,
+  },
+});
 
-export const remove_cqcode = (text: string) =>
-  text.replaceAll(/\[CQ:[^\]]+\]/g, "");
+export const mk_reply = (event: MessageEvent): ReplySegment => ({
+  type: "reply",
+  data: {
+    id: `${event.message_id}`,
+  },
+});
 
-export const unescape_non_cq = (text: string) =>
-  text
-    .replaceAll(/&#91;/g, "[")
-    .replaceAll(/&#93;/g, "]")
-    .replaceAll(/&amp;/g, "&");
+export const is_group_message_event = (event: Event) =>
+  event.post_type == "message" &&
+  event.message_type == "group" &&
+  event.sub_type == "normal";
 
-export const is_at_self = (text: string) =>
-  text.includes(`[CQ:at,qq=${get_config().self_id}]`);
+export const is_at_self = (msg: Message) => {
+  const self_id = get_config().self_id;
+  if (typeof msg === "string") {
+    return msg.includes(`[CQ:at,qq=${self_id}]`);
+  }
+
+  return msg.some((seg) => seg.type === "at" && seg.data.qq === `${self_id}`);
+};
 
 const get_api_body = <TParams>(
   endpoint: string,
@@ -72,8 +95,8 @@ const http_api_call = async <TParams>(
 
 const ws_fetch = (ws: WebSocketClient, msg: string, echo: string) =>
   new Promise<{ status: string }>((resolve) => {
-    const listener = (msg: string) => {
-      const data = JSON.parse(msg);
+    const listener = (msg: { data: string }) => {
+      const data = JSON.parse(msg.data);
       if (data.echo == echo) {
         ws.off("message", listener);
         resolve(data);
@@ -113,19 +136,15 @@ const ws_api_call = async <TParams>(
 const api_call = <TParams>(
   endpoint: string,
   params: TParams,
-) =>
-  wsApi
+) => {
+  log(`calling api ${endpoint}, params: ${JSON.stringify(params)}`);
+  return wsApi
     ? ws_api_call(endpoint, params, wsApi)
     : http_api_call(endpoint, params);
+};
 
 export const send_group_message = (
   group_id: number,
-  message: string,
-  parse_cq: boolean,
+  message: Message,
+  parse_cq = false,
 ) => api_call("send_group_msg", { group_id, message, auto_escape: !parse_cq });
-
-export const send_group_at_message = (
-  group_id: number,
-  message: string,
-  at: number,
-) => send_group_message(group_id, cq_at(at) + message, true);

@@ -13,16 +13,16 @@ import {
 } from "https://deno.land/x/openai@v4.24.0/resources/mod.ts";
 
 import {
-  cq_image,
   is_at_self,
-  remove_cqcode,
-  Report,
-  send_group_at_message,
-  unescape_non_cq,
-} from "../../cqhttp.ts";
-import { ReportHandleFunc } from "../base.ts";
+  mk_image,
+  mk_reply,
+  mk_text,
+  send_group_message,
+} from "../../onebot/cqhttp.ts";
+import { GroupEventHandleFunc, GroupEventHandler } from "../base.ts";
+import { GroupMessageEvent } from "../../onebot/types/event/message.ts";
 
-const search_ill = async (tags: string[]) => {
+const search_ill_by_tags = async (tags: string[]) => {
   while (true) {
     const output = await spawn_get_output(
       ["python3", SEARCH_ILL_PY, "search"].concat(tags),
@@ -51,7 +51,7 @@ const call_function = async (completion: ChatCompletion) => {
   const fn = completion.choices[0].message.tool_calls[0].function;
   switch (fn.name) {
     case "search_ill":
-      return await search_ill(JSON.parse(fn.arguments).tags);
+      return await search_ill_by_tags(JSON.parse(fn.arguments).tags);
   }
   return [];
 };
@@ -115,10 +115,17 @@ async function choose_ill(paths: string[]) {
   return choices[Math.floor(Math.random() * choices.length)];
 }
 
-const handle_func = async (report: Report) => {
-  if (!is_at_self(report.message)) return;
+const handle_func = async (event: GroupMessageEvent) => {
+  if (!is_at_self(event.message)) return;
 
-  const input = unescape_non_cq(remove_cqcode(report.message).trim());
+  let input: string;
+  if (typeof event.message === "string") {
+    input = event.message.trim();
+  } else {
+    input = event.message.map((seg) =>
+      seg.type === "text" ? seg.data.text.trim() : ""
+    ).join(" ");
+  }
   if (!config.ill_input_match.some((m) => input.includes(m))) return;
 
   log("search_ill");
@@ -127,10 +134,9 @@ const handle_func = async (report: Report) => {
   const pairs = await download_small(ids);
   if (pairs.length == 0) {
     log("No ill found");
-    send_group_at_message(
-      report.group_id,
-      "再怎么找也找不到啦>_<",
-      report.sender.user_id,
+    send_group_message(
+      event.group_id,
+      [mk_text("再怎么找也找不到啦>_<"), mk_reply(event)],
     );
     return;
   }
@@ -147,10 +153,9 @@ const handle_func = async (report: Report) => {
   });
 
   const [[_, path]] = await download_large([ids[choice]]);
-  send_group_at_message(
-    report.group_id,
-    [cq_image(Deno.readFileSync(path)), url].join("\n"),
-    report.sender.user_id,
+  send_group_message(
+    event.group_id,
+    [mk_reply(event), mk_image(Deno.readFileSync(path)), mk_text(url)],
   );
 };
 
@@ -169,10 +174,12 @@ const on_config_change = () => {
   client = new OpenAI({ apiKey: config.openai_api_key });
 };
 
-export default {
+const search_ill: GroupEventHandler = {
   name: "search_ill",
-  handle_func: wrap<ReportHandleFunc>(handle_func).with(task_queue).with(
+  handle_func: wrap<GroupEventHandleFunc>(handle_func).with(task_queue).with(
     rate_limit(() => config.rate_limit_per_hour, () => 3600 * 1000),
   ).call,
   on_config_change,
 };
+
+export default search_ill;

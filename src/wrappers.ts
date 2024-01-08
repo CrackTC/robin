@@ -1,8 +1,8 @@
 import { get_config } from "./config.ts";
 import { fail } from "./api/common.ts";
 import { error } from "./utils.ts";
-import { send_group_at_message } from "./cqhttp.ts";
-import { ReportHandleFunc } from "./handlers/base.ts";
+import { mk_reply, mk_text, send_group_message } from "./onebot/cqhttp.ts";
+import { GroupEventHandleFunc } from "./handlers/base.ts";
 import { ApiHandler } from "./api/api.ts";
 
 type Wrapper<Fn extends CallableFunction> = (fn: Fn) => Fn;
@@ -49,13 +49,13 @@ export const task_queue = <T>(handler: (arg: T) => void | Promise<void>) => {
 export const rate_limit = (
   get_limit: () => number,
   get_period: () => number,
-): Wrapper<ReportHandleFunc> => {
+): Wrapper<GroupEventHandleFunc> => {
   const history: Record<number, number[]> = {};
-  return (handler) => (report) => {
+  return (handler) => (event) => {
     const limit = get_limit();
     const period = get_period();
 
-    const group_id = report.group_id;
+    const group_id = event.group_id;
     if (!(group_id in history)) history[group_id] = [];
     const times = history[group_id];
     const now = new Date();
@@ -66,14 +66,16 @@ export const rate_limit = (
       const wait_seconds = Math.ceil(
         (times[0] + period - now.getTime()) / 1000,
       );
-      send_group_at_message(
+      send_group_message(
         group_id,
-        `Rate limit exceeded. Please wait ${wait_seconds} seconds.`,
-        report.sender.user_id,
+        [
+          mk_text(`Rate limit exceeded. Please wait ${wait_seconds} seconds.`),
+          mk_reply(event),
+        ],
       );
       return Promise.resolve();
     }
     times.push(now.getTime());
-    return handler(report);
+    return handler(event);
   };
 };
