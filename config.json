@@ -2,6 +2,7 @@
     "self_id": 0,
     "port": 3101,
     "api_addr": "http://localhost:1234",
+    "ws_addr": "ws://localhost:5678",
     "groups": [],
     "max_retry": 5,
     "retry_interval": 30,

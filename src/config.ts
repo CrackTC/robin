@@ -7,7 +7,8 @@ const FALLBACK_TOKEN = crypto.randomUUID();
 class Config {
   self_id: number;
   port: number;
-  api_addr: string;
+  http_addr: string;
+  ws_addr: string;
   api_token: string;
   groups: number[];
   max_retry: number;
@@ -17,7 +18,8 @@ class Config {
   constructor() {
     this.self_id = 0;
     this.port = 3101;
-    this.api_addr = "";
+    this.http_addr = "";
+    this.ws_addr = "";
     this.api_token = FALLBACK_TOKEN;
     this.groups = [];
     this.max_retry = 5;
@@ -41,8 +43,13 @@ function verifyConfig(config: Config) {
     "port must be in range 1-65535",
   );
 
-  assert(typeof config.api_addr === "string", "api_addr must be a string");
-  assert(config.api_addr.length > 0, "api_addr must not be empty");
+  assert(typeof config.http_addr === "string", "http_addr must be a string");
+  assert(typeof config.ws_addr === "string", "ws_addr must be a string");
+
+  assert(
+    config.ws_addr.length > 0 || config.http_addr.length > 0,
+    "at least one of http_addr and ws_addr must be non-empty",
+  );
 
   assert(typeof config.api_token === "string", "api_token must be a string");
 

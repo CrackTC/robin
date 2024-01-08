@@ -7,9 +7,29 @@ export function assert(
 
 export const is_decimal_number = (str: string) => /^\d+$/.test(str);
 
-export const log = (...data: unknown[]) => console.log(new Date(), ...data);
-export const warn = (...data: unknown[]) => console.warn(new Date(), ...data);
-export const error = (...data: unknown[]) => console.error(new Date(), ...data);
+export const log = (...data: unknown[]) =>
+  console.log(
+    "%s%s",
+    `[${new Date().toLocaleString()}] [INFO] `,
+    data.map((item) => (typeof item === "string" ? item : JSON.stringify(item)))
+      .join(" "),
+  );
+export const warn = (...data: unknown[]) =>
+  console.warn(
+    "%c%s%s",
+    "color: yellow",
+    `[${new Date().toLocaleString()}] [WARN] `,
+    data.map((item) => (typeof item === "string" ? item : JSON.stringify(item)))
+      .join(" "),
+  );
+export const error = (...data: unknown[]) =>
+  console.error(
+    "%c%s%s",
+    "color: red",
+    `[${new Date().toLocaleString()}] [ERROR] `,
+    data.map((item) => (typeof item === "string" ? item : JSON.stringify(item)))
+      .join(" "),
+  );
 
 const get_time = () => {
   const date = new Date();
