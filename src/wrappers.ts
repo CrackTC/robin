@@ -4,6 +4,7 @@ import { error } from "./utils.ts";
 import { mk_reply, mk_text, send_group_message } from "./onebot/cqhttp.ts";
 import { GroupEventHandleFunc } from "./handlers/base.ts";
 import { ApiHandler } from "./api/api.ts";
+import { GroupMessageEvent } from "./onebot/types/event/message.ts";
 
 type Wrapper<Fn extends CallableFunction> = (fn: Fn) => Fn;
 
@@ -49,9 +50,12 @@ export const task_queue = <T>(handler: (arg: T) => void | Promise<void>) => {
 export const rate_limit = (
   get_limit: () => number,
   get_period: () => number,
+  validate = (event: GroupMessageEvent) => true,
 ): Wrapper<GroupEventHandleFunc> => {
   const history: Record<number, number[]> = {};
   return (handler) => (event) => {
+    if (!validate(event)) return;
+
     const limit = get_limit();
     const period = get_period();
 

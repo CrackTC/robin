@@ -21,6 +21,7 @@ import {
 } from "../../onebot/cqhttp.ts";
 import { GroupEventHandleFunc, GroupEventHandler } from "../base.ts";
 import { GroupMessageEvent } from "../../onebot/types/event/message.ts";
+import { Message } from "../../onebot/types/message.ts";
 
 const search_ill_by_tags = async (tags: string[]) => {
   while (true) {
@@ -115,21 +116,23 @@ async function choose_ill(paths: string[]) {
   return choices[Math.floor(Math.random() * choices.length)];
 }
 
-const handle_func = async (event: GroupMessageEvent) => {
-  if (!is_at_self(event.message)) return;
+const get_input = (message: Message) => {
+  if (!is_at_self(message)) return "";
 
   let input: string;
-  if (typeof event.message === "string") {
-    input = event.message.trim();
-  } else {
-    input = event.message.map((seg) =>
+  if (typeof message == "string") input = message.trim();
+  else {
+    input = message.map((seg) =>
       seg.type === "text" ? seg.data.text.trim() : ""
     ).join(" ");
   }
-  if (!config.ill_input_match.some((m) => input.includes(m))) return;
+  return config.ill_input_match.some((m) => input.includes(m)) ? input : "";
+};
 
+const handle_func = async (event: GroupMessageEvent) => {
   log("search_ill");
 
+  const input = get_input(event.message);
   const ids = await call_function(await get_tag_reply(input));
   const pairs = await download_small(ids);
   if (pairs.length == 0) {
@@ -177,7 +180,11 @@ const on_config_change = () => {
 const search_ill: GroupEventHandler = {
   name: "search_ill",
   handle_func: wrap<GroupEventHandleFunc>(handle_func).with(task_queue).with(
-    rate_limit(() => config.rate_limit_per_hour, () => 3600 * 1000),
+    rate_limit(
+      () => config.rate_limit_per_hour,
+      () => 3600 * 1000,
+      (event) => get_input(event.message) != "",
+    ),
   ).call,
   on_config_change,
 };
