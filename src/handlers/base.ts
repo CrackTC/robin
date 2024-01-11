@@ -29,9 +29,8 @@ const group_event_handlers: { [name: string]: GroupEventHandlerInternal } = {};
 export const handle_event = (event: Event) => {
   if (is_group_message_event(event)) {
     log(`group message event: ${JSON.stringify(event)}`);
-    const group_msg_event = event as GroupMessageEvent;
-    if (get_config().groups.includes(group_msg_event.group_id)) {
-      handle_group_msg_event(group_msg_event);
+    if (get_config().groups.includes(event.group_id)) {
+      handle_group_msg_event(event);
     }
   } else if (is_heartbeat_event(event)) {
     heartbeat(event as HeartbeatEvent);

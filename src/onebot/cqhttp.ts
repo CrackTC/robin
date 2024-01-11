@@ -12,7 +12,8 @@ import {
   TextSegment,
 } from "./types/message.ts";
 import { Event } from "./types/event/common.ts";
-import { MessageEvent } from "./types/event/message.ts";
+import { GroupMessageEvent, MessageEvent } from "./types/event/message.ts";
+import { HeartbeatEvent } from "./types/event/meta.ts";
 
 export const mk_text = (text: string): TextSegment => ({
   type: "text",
@@ -44,10 +45,12 @@ export const mk_reply = (event: MessageEvent): ReplySegment => ({
   },
 });
 
-export const is_heartbeat_event = (event: Event) =>
+export const is_heartbeat_event = (event: Event): event is HeartbeatEvent =>
   event.post_type == "meta_event" && event.meta_event_type == "heartbeat";
 
-export const is_group_message_event = (event: Event) =>
+export const is_group_message_event = (
+  event: Event,
+): event is GroupMessageEvent =>
   event.post_type == "message" &&
   event.message_type == "group" &&
   event.sub_type == "normal";
