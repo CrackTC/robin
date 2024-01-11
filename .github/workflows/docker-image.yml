@@ -29,10 +29,20 @@ jobs:
               break
             fi
           done < files.txt
-  build:
-    name: Build docker image
+  test:
+    name: Deno test
     needs: check
     if: needs.check.outputs.run_job == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: denoland/setup-deno@v1
+        with:
+          deno-version: v1.x
+      - run: deno test --allow-read --allow-write --allow-run
+  build:
+    name: Build docker image
+    needs: test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
