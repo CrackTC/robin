@@ -32,6 +32,7 @@ export const handle_event = (event: Event) => {
       handle_group_msg_event(event);
     }
   } else if (is_heartbeat_event(event)) {
+    log(`heartbeat event: ${JSON.stringify(event)}`);
     const beat = heartbeat_start(event.interval, () => {
       setup_ws_event();
       setup_ws_api();
