@@ -11,7 +11,11 @@ export const log = (...data: unknown[]) =>
   console.log(
     "%s%s",
     `[${new Date().toLocaleString()}] [INFO] `,
-    data.map((item) => (typeof item === "string" ? item : JSON.stringify(item)))
+    data.map((item) =>
+      typeof item === "string"
+        ? item
+        : JSON.stringify(item, Object.getOwnPropertyNames(item))
+    )
       .join(" "),
   );
 export const warn = (...data: unknown[]) =>
@@ -19,7 +23,11 @@ export const warn = (...data: unknown[]) =>
     "%c%s%s",
     "color: yellow",
     `[${new Date().toLocaleString()}] [WARN] `,
-    data.map((item) => (typeof item === "string" ? item : JSON.stringify(item)))
+    data.map((item) =>
+      typeof item === "string"
+        ? item
+        : JSON.stringify(item, Object.getOwnPropertyNames(item))
+    )
       .join(" "),
   );
 export const error = (...data: unknown[]) =>
@@ -27,7 +35,11 @@ export const error = (...data: unknown[]) =>
     "%c%s%s",
     "color: red",
     `[${new Date().toLocaleString()}] [ERROR] `,
-    data.map((item) => (typeof item === "string" ? item : JSON.stringify(item)))
+    data.map((item) =>
+      typeof item === "string"
+        ? item
+        : JSON.stringify(item, Object.getOwnPropertyNames(item))
+    )
       .join(" "),
   );
 
