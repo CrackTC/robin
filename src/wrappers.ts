@@ -50,7 +50,7 @@ export const task_queue = <T>(handler: (arg: T) => void | Promise<void>) => {
 export const rate_limit = (
   get_limit: () => number,
   get_period: () => number,
-  validate = (event: GroupMessageEvent) => true,
+  validate = (_: GroupMessageEvent) => true,
 ): Wrapper<GroupEventHandleFunc> => {
   const history: Record<number, number[]> = {};
   return (handler) => (event) => {

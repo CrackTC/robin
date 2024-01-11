@@ -1,6 +1,6 @@
 import { get_config } from "../config.ts";
 import { error, log, warn } from "../utils.ts";
-import { wsApi } from "../main.ts";
+import { WS_API } from "../ws.ts";
 import { sleep } from "https://deno.land/x/sleep@v1.2.1/mod.ts";
 import { encode } from "https://deno.land/std@0.202.0/encoding/base64.ts";
 import { WebSocketClient } from "https://deno.land/x/websocket@v0.1.4/mod.ts";
@@ -43,6 +43,9 @@ export const mk_reply = (event: MessageEvent): ReplySegment => ({
     id: `${event.message_id}`,
   },
 });
+
+export const is_heartbeat_event = (event: Event) =>
+  event.post_type == "meta_event" && event.meta_event_type == "heartbeat";
 
 export const is_group_message_event = (event: Event) =>
   event.post_type == "message" &&
@@ -138,8 +141,8 @@ const api_call = <TParams>(
   params: TParams,
 ) => {
   log(`calling api ${endpoint}, params: ${JSON.stringify(params)}`);
-  return wsApi
-    ? ws_api_call(endpoint, params, wsApi)
+  return WS_API
+    ? ws_api_call(endpoint, params, WS_API)
     : http_api_call(endpoint, params);
 };
 

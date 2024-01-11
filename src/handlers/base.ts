@@ -1,6 +1,13 @@
 import { error, log } from "../utils.ts";
 import { get_config } from "../config.ts";
 import { GroupMessageEvent } from "../onebot/types/event/message.ts";
+import { Event } from "../onebot/types/event/common.ts";
+import {
+  is_group_message_event,
+  is_heartbeat_event,
+} from "../onebot/cqhttp.ts";
+import { heartbeat } from "../ws.ts";
+import { HeartbeatEvent } from "../onebot/types/event/meta.ts";
 
 export type GroupEventHandleFunc = (
   event: GroupMessageEvent,
@@ -19,7 +26,19 @@ type GroupEventHandlerInternal = GroupEventHandler & {
 
 const group_event_handlers: { [name: string]: GroupEventHandlerInternal } = {};
 
-export const handle_group_msg_event = (event: GroupMessageEvent) =>
+export const handle_event = (event: Event) => {
+  if (is_group_message_event(event)) {
+    log(`group message event: ${JSON.stringify(event)}`);
+    const group_msg_event = event as GroupMessageEvent;
+    if (get_config().groups.includes(group_msg_event.group_id)) {
+      handle_group_msg_event(group_msg_event);
+    }
+  } else if (is_heartbeat_event(event)) {
+    heartbeat(event as HeartbeatEvent);
+  }
+};
+
+const handle_group_msg_event = (event: GroupMessageEvent) =>
   Object.values(group_event_handlers)
     .filter((handler) =>
       handler.enabled && handler.groups.includes(event.group_id)
@@ -114,7 +133,11 @@ export async function load_handlers() {
     if (dirEntry.isDirectory) {
       const handler: GroupEventHandler =
         (await import(`./${dirEntry.name}/index.ts`)).default;
-      group_event_handlers[handler.name] = { ...handler, groups: [], enabled: true };
+      group_event_handlers[handler.name] = {
+        ...handler,
+        groups: [],
+        enabled: true,
+      };
       handler.on_config_change();
       log(`Loaded handler ${handler.name}`);
     }
