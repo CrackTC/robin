@@ -41,10 +41,10 @@ export const handle_event = (event: Event) => {
       const event: Event = JSON.parse(msg.data);
       if (is_heartbeat_event(event)) {
         beat();
-        WS_EVENT.off("message", listener);
+        WS_EVENT.removeEventListener("message", listener);
       }
     };
-    WS_EVENT.on("message", listener);
+    WS_EVENT.addEventListener("message", listener);
   }
 };
 

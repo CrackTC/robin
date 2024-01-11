@@ -3,7 +3,6 @@ import { error, log, warn } from "../utils.ts";
 import { WS_API } from "../ws.ts";
 import { sleep } from "https://deno.land/x/sleep@v1.2.1/mod.ts";
 import { encode } from "https://deno.land/std@0.202.0/encoding/base64.ts";
-import { WebSocketClient } from "https://deno.land/x/websocket@v0.1.4/mod.ts";
 import {
   AtSegment,
   ImageSegment,
@@ -99,22 +98,23 @@ const http_api_call = async <TParams>(
   return false;
 };
 
-const ws_fetch = (ws: WebSocketClient, msg: string, echo: string) =>
+const ws_fetch = (ws: WebSocket, msg: string, echo: string) =>
   new Promise<{ status: string }>((resolve) => {
     const listener = (msg: { data: string }) => {
       const data = JSON.parse(msg.data);
       if (data.echo == echo) {
-        ws.off("message", listener);
+        ws.removeEventListener("message", listener);
         resolve(data);
       }
     };
-    ws.on("message", listener).send(msg);
+    ws.addEventListener("message", listener)
+    ws.send(msg);
   });
 
 const ws_api_call = async <TParams>(
   endpoint: string,
   params: TParams,
-  ws: WebSocketClient,
+  ws: WebSocket,
 ) => {
   const { retry_interval, max_retry } = get_config();
 
