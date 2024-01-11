@@ -105,7 +105,7 @@ export const heartbeat_start = (interval: number, die: () => void) => {
   let alive = false;
 
   (async () => {
-    await sleep(interval / 1000);
+    await sleep(interval * 2 / 1000);
     if (!alive) {
       error("heartbeat timeout");
       die();
