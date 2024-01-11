@@ -13,7 +13,6 @@ export let WS_API: WebSocketClient;
 
 export const setup_ws_event = () => {
   const event_url = `${get_config().ws_addr}/event`;
-  if (WS_EVENT && !WS_EVENT.isClosed) WS_EVENT.close(1000, "reconnect")
 
   WS_EVENT = new StandardWebSocketClient(event_url);
   WS_EVENT
@@ -36,7 +35,6 @@ export const setup_ws_event = () => {
 
 export const setup_ws_api = () => {
   const api_url = `${get_config().ws_addr}/api`;
-  if (WS_API && !WS_API.isClosed) WS_EVENT.close(1000, "reconnect")
 
   WS_API = new StandardWebSocketClient(api_url);
   WS_API
