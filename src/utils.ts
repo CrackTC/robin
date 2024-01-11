@@ -1,3 +1,5 @@
+import { sleep } from "https://deno.land/x/sleep@v1.2.1/mod.ts";
+
 export function assert(
   condition: boolean,
   message?: string,
@@ -97,4 +99,20 @@ export const spawn_get_output = async (argv: string[]) => {
   } else {
     error(`spawn ${argv[0]} failed with code ${output.code}`);
   }
+};
+
+export const heartbeat_start = (interval: number, die: () => void) => {
+  let alive = false;
+
+  (async () => {
+    await sleep(interval / 1000);
+    if (!alive) {
+      error("heartbeat timeout");
+      die();
+    }
+  })();
+
+  return () => {
+    alive = true;
+  };
 };

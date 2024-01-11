@@ -1,4 +1,4 @@
-import { error, log } from "../utils.ts";
+import { error, heartbeat_start, log } from "../utils.ts";
 import { get_config } from "../config.ts";
 import { GroupMessageEvent } from "../onebot/types/event/message.ts";
 import { Event } from "../onebot/types/event/common.ts";
@@ -6,8 +6,7 @@ import {
   is_group_message_event,
   is_heartbeat_event,
 } from "../onebot/cqhttp.ts";
-import { heartbeat } from "../ws.ts";
-import { HeartbeatEvent } from "../onebot/types/event/meta.ts";
+import { setup_ws_api, setup_ws_event, WS_EVENT } from "../ws.ts";
 
 export type GroupEventHandleFunc = (
   event: GroupMessageEvent,
@@ -33,7 +32,18 @@ export const handle_event = (event: Event) => {
       handle_group_msg_event(event);
     }
   } else if (is_heartbeat_event(event)) {
-    heartbeat(event as HeartbeatEvent);
+    const beat = heartbeat_start(event.interval, () => {
+      setup_ws_event();
+      setup_ws_api();
+    });
+    const listener = (msg: MessageEvent) => {
+      const event: Event = JSON.parse(msg.data);
+      if (is_heartbeat_event(event)) {
+        beat();
+        WS_EVENT.off("message", listener);
+      }
+    };
+    WS_EVENT.on("message", listener);
   }
 };
 

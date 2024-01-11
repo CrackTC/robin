@@ -7,31 +7,9 @@ import { error, log } from "./utils.ts";
 import { sleep } from "https://deno.land/x/sleep@v1.2.1/sleep.ts";
 import { handle_event } from "./handlers/base.ts";
 import { Event } from "./onebot/types/event/common.ts";
-import { HeartbeatEvent } from "./onebot/types/event/meta.ts";
-import { is_heartbeat_event } from "./onebot/cqhttp.ts";
 
 export let WS_EVENT: WebSocketClient;
 export let WS_API: WebSocketClient;
-
-export const heartbeat = async (event: HeartbeatEvent) => {
-  const interval_ms = event.interval;
-  let heartbeated = false;
-  const listener = (msg: MessageEvent) => {
-    const event: Event = JSON.parse(msg.data);
-    if (is_heartbeat_event(event)) {
-      heartbeated = true;
-      WS_EVENT.off("message", listener);
-    }
-  };
-
-  WS_EVENT.on("message", listener);
-  await sleep(interval_ms * 2 / 1000);
-  if (!heartbeated) {
-    error("heartbeat timeout");
-    setup_ws_event();
-    setup_ws_api();
-  }
-};
 
 export const setup_ws_event = () => {
   const event_url = `${get_config().ws_addr}/event`;
