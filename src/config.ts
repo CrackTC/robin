@@ -28,7 +28,7 @@ class Config {
   }
 }
 
-function readConfig() {
+function readConfig(): Config {
   const json = JSON.parse(Deno.readTextFileSync("data/config.json"));
   return { ...new Config(), ...json };
 }
@@ -71,31 +71,23 @@ function loadConfig() {
   const config = readConfig();
   verifyConfig(config);
   log("api_token:", config.api_token);
-  return config as Config;
+  return config;
 }
 
 let CONFIG: Config;
 
-export function get_config() {
-  if (!CONFIG) {
-    CONFIG = loadConfig();
-    on_config_change();
-  }
-  return CONFIG;
-}
+const watch_config = async () => {
+  const configWatcher = Deno.watchFs("data/");
+  const reloadConfig = debounce(() => {
+    try {
+      CONFIG = loadConfig();
+      on_config_change();
+      log("config reloaded");
+    } catch (e) {
+      error(e);
+    }
+  }, 50);
 
-const configWatcher = Deno.watchFs("data/");
-const reloadConfig = debounce(() => {
-  try {
-    CONFIG = loadConfig();
-    on_config_change();
-    log("config reloaded");
-  } catch (e) {
-    error(e);
-  }
-}, 50);
-
-(async () => {
   for await (const event of configWatcher) {
     try {
       if (
@@ -107,4 +99,13 @@ const reloadConfig = debounce(() => {
       if (!(e instanceof Deno.errors.NotFound)) error(e);
     }
   }
-})();
+};
+
+export function get_config() {
+  if (!CONFIG) {
+    CONFIG = loadConfig();
+    watch_config();
+    on_config_change();
+  }
+  return CONFIG;
+}
