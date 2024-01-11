@@ -1,10 +1,7 @@
 import { get_config } from "./config.ts";
 import { fail } from "./api/common.ts";
 import { error } from "./utils.ts";
-import { mk_reply, mk_text, send_group_message } from "./onebot/cqhttp.ts";
-import { GroupEventHandleFunc } from "./handlers/base.ts";
 import { ApiHandler } from "./api/api.ts";
-import { GroupMessageEvent } from "./onebot/types/event/message.ts";
 
 type Wrapper<Fn extends CallableFunction> = (fn: Fn) => Fn;
 
@@ -47,21 +44,34 @@ export const task_queue = <T>(handler: (arg: T) => void | Promise<void>) => {
   return (arg: T) => task = task.then(() => handler(arg)).catch(error);
 };
 
-export const rate_limit = (
-  get_limit: () => number,
-  get_period: () => number,
-  validate = (_: GroupMessageEvent) => true,
-): Wrapper<GroupEventHandleFunc> => {
+type Action<T> = (arg: T) => void | Promise<void>;
+type RateLimitArgs<T> = {
+  get_limit: () => number;
+  get_period: () => number;
+  get_id: (arg: T) => number;
+  validate?: (arg: T) => boolean;
+  exceed_action: (arg: T, wait_seconds: number) => void | Promise<void>;
+};
+
+export const rate_limit = <TInput>(
+  {
+    get_limit,
+    get_period,
+    get_id,
+    validate = (_: TInput) => true,
+    exceed_action,
+  }: RateLimitArgs<TInput>,
+): Wrapper<Action<TInput>> => {
   const history: Record<number, number[]> = {};
-  return (handler) => (event) => {
-    if (!validate(event)) return;
+  return (handler) => (input) => {
+    if (!validate(input)) return;
 
     const limit = get_limit();
     const period = get_period();
 
-    const group_id = event.group_id;
-    if (!(group_id in history)) history[group_id] = [];
-    const times = history[group_id];
+    const id = get_id(input);
+    if (!(id in history)) history[id] = [];
+    const times = history[id];
     const now = new Date();
     while (times.length > 0 && times[0] + period < now.getTime()) times.shift();
     if (times.length >= limit) {
@@ -70,16 +80,10 @@ export const rate_limit = (
       const wait_seconds = Math.ceil(
         (times[0] + period - now.getTime()) / 1000,
       );
-      send_group_message(
-        group_id,
-        [
-          mk_text(`Rate limit exceeded. Please wait ${wait_seconds} seconds.`),
-          mk_reply(event),
-        ],
-      );
+      exceed_action(input, wait_seconds);
       return Promise.resolve();
     }
     times.push(now.getTime());
-    return handler(event);
+    return handler(input);
   };
 };

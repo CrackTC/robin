@@ -179,13 +179,23 @@ const on_config_change = () => {
 
 const search_ill: GroupEventHandler = {
   name: "search_ill",
-  handle_func: wrap<GroupEventHandleFunc>(handle_func).with(task_queue).with(
-    rate_limit(
-      () => config.rate_limit_per_hour,
-      () => 3600 * 1000,
-      (event) => get_input(event.message) != "",
-    ),
-  ).call,
+  handle_func: wrap<GroupEventHandleFunc>(handle_func)
+    .with(task_queue)
+    .with(rate_limit({
+      get_limit: () => config.rate_limit_per_hour,
+      get_period: () => 3600 * 1000,
+      get_id: (event) => event.group_id,
+      validate: (event) => get_input(event.message) != "",
+      exceed_action: (event, wait) => {
+        send_group_message(
+          event.group_id,
+          [
+            mk_reply(event),
+            mk_text(`Rate limit exceeded. Please wait ${wait} seconds.`),
+          ],
+        );
+      },
+    })).call,
   on_config_change,
 };
 
