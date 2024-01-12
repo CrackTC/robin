@@ -7,6 +7,7 @@ import {
 import { handle_group_event } from "./message/group/index.ts";
 import { handle_heartbeat_event } from "./meta_event/heartbeat/index.ts";
 import { load_handlers as load_group_handlers } from "./message/group/index.ts";
+import { load_handlers as load_private_handlers } from "./message/private/index.ts";
 import { load_handlers as load_heartbeat_handlers } from "./meta_event/heartbeat/index.ts";
 import { EventHandler } from "./types.ts";
 
@@ -51,6 +52,7 @@ export const on_config_change = () =>
 export const load_handlers = async () => {
   await Promise.all([
     load_group_handlers(),
+    load_private_handlers(),
     load_heartbeat_handlers(),
   ]);
 };

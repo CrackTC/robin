@@ -154,3 +154,9 @@ export const send_group_message = (
   message: Message,
   parse_cq = false,
 ) => api_call("send_group_msg", { group_id, message, auto_escape: !parse_cq });
+
+export const send_private_message = (
+  user_id: number,
+  message: Message,
+  parse_cq = false,
+) => api_call("send_private_msg", { user_id, message, auto_escape: !parse_cq });

@@ -7,6 +7,8 @@ class Config {
   rate_limit_per_hour = 10;
   model_tag = "gpt-4-1106-preview";
   model_ill = "gpt-4-vision-preview";
+  reply_not_found = "再怎么找也找不到啦>_<";
+  reply_limit = "说话太快啦～，再等{}秒吧";
 }
 
 export const config = new Config();

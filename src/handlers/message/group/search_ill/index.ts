@@ -1,4 +1,4 @@
-import OpenAI from "https://deno.land/x/openai@v4.24.0/mod.ts";
+import OpenAI from "https://deno.land/x/openai@v4.24.5/mod.ts";
 import { encode } from "https://deno.land/std@0.202.0/encoding/base64.ts";
 import { error, log, spawn_get_output } from "../../../../utils.ts";
 import { config, on_config_change as base_config_change } from "./config.ts";
@@ -10,7 +10,7 @@ import {
   ChatCompletionContentPart,
   ChatCompletionMessageParam,
   ChatCompletionTool,
-} from "https://deno.land/x/openai@v4.24.0/resources/mod.ts";
+} from "https://deno.land/x/openai@v4.24.5/resources/mod.ts";
 
 import {
   is_at_self,
@@ -30,7 +30,7 @@ const search_ill_by_tags = async (tags: string[]) => {
     );
 
     if (output === undefined) {
-      error("Search failed");
+      error("search failed");
       return [];
     }
 
@@ -45,7 +45,7 @@ const search_ill_by_tags = async (tags: string[]) => {
 
 const call_function = async (completion: ChatCompletion) => {
   if (completion.choices[0].message.tool_calls === undefined) {
-    error("No tool calls");
+    error("no tool calls");
     return [];
   }
 
@@ -65,7 +65,7 @@ const download_small = async (ids: number[]) => {
   );
 
   if (output === undefined) {
-    error("Download failed");
+    error("download failed");
     return [];
   }
 
@@ -79,7 +79,7 @@ const download_large = async (ids: number[]) => {
     ),
   );
   if (output === undefined) {
-    error("Download failed");
+    error("download failed");
     return [];
   }
 
@@ -136,11 +136,11 @@ const handle_func = async (event: GroupMessageEvent) => {
   const ids = await call_function(await get_tag_reply(input));
   const pairs = await download_small(ids);
   if (pairs.length == 0) {
-    log("No ill found");
-    send_group_message(
-      event.group_id,
-      [mk_text("再怎么找也找不到啦>_<"), mk_reply(event)],
-    );
+    log("no ill found");
+    send_group_message(event.group_id, [
+      mk_reply(event),
+      mk_text(config.reply_not_found),
+    ]);
     return;
   }
 
@@ -187,13 +187,10 @@ export default new GroupEventHandler({
       get_id: (event) => event.group_id,
       validate: (event) => get_input(event.message) != "",
       exceed_action: (event, wait) => {
-        send_group_message(
-          event.group_id,
-          [
-            mk_reply(event),
-            mk_text(`Rate limit exceeded. Please wait ${wait} seconds.`),
-          ],
-        );
+        send_group_message(event.group_id, [
+          mk_reply(event),
+          mk_text(config.reply_limit.replace("{}", wait.toString())),
+        ]);
       },
     })).call,
   on_config_change,
