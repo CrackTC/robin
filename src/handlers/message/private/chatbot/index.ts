@@ -18,7 +18,7 @@ db.execute(`
   CREATE TABLE IF NOT EXISTS ${NAME} (
     user_id INTEGER NOT NULL,
     role TEXT NOT NULL,
-    content TEXT NOT NULL
+    content TEXT NOT NULL,
     timestamp INTEGER NOT NULL
   )
 `);
