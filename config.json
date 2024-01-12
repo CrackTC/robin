@@ -1,29 +1,29 @@
 {
-    "self_id": 0,
-    "port": 3101,
-    "api_addr": "http://localhost:1234",
-    "ws_addr": "ws://localhost:5678",
-    "groups": [],
-    "max_retry": 5,
-    "retry_interval": 30,
-    "handlers": {
-        "rand_reply": {
-            "texts": [],
-            "image_paths": []
-        },
-        "search_ill": {
-            "pixiv_refresh_token": "",
-            "openai_api_key": "",
-            "ill_input_match": [],
-            "rate_limit_per_hour": 10,
-            "model_tag": "gpt-4-1106-preview",
-            "model_ill": "gpt-4-vision-preview"
-        },
-        "user_rank": {
-            "cron": "1 0 0 * * *"
-        },
-        "word_cloud": {
-            "cron": "1 0 0 * * *"
-        }
+  "self_id": 0,
+  "port": 3101,
+  "api_addr": "http://localhost:1234",
+  "ws_addr": "ws://localhost:5678",
+  "groups": [],
+  "max_retry": 5,
+  "retry_interval": 30,
+  "handlers": {
+    "rand_reply": {
+      "texts": [],
+      "image_paths": []
+    },
+    "search_ill": {
+      "pixiv_refresh_token": "",
+      "openai_api_key": "",
+      "ill_input_match": [],
+      "rate_limit_per_hour": 10,
+      "model_tag": "gpt-4-1106-preview",
+      "model_ill": "gpt-4-vision-preview"
+    },
+    "user_rank": {
+      "cron": "1 0 0 * * *"
+    },
+    "word_cloud": {
+      "cron": "1 0 0 * * *"
     }
+  }
 }
