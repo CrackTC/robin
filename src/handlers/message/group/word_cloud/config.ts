@@ -1,4 +1,4 @@
-import { get_config } from "../../config.ts";
+import { get_config } from "../../../../config.ts";
 
 class Config {
   cron = "0 0 0 * * *";
