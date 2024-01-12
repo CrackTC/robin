@@ -11,7 +11,11 @@ import {
   TextSegment,
 } from "./types/message.ts";
 import { Event } from "./types/event/common.ts";
-import { GroupMessageEvent, MessageEvent } from "./types/event/message.ts";
+import {
+  GroupMessageEvent,
+  MessageEvent,
+  PrivateMessageEvent,
+} from "./types/event/message.ts";
 import { HeartbeatEvent } from "./types/event/meta.ts";
 
 export const mk_text = (text: string): TextSegment => ({
@@ -53,6 +57,13 @@ export const is_group_message_event = (
   event.post_type == "message" &&
   event.message_type == "group" &&
   event.sub_type == "normal";
+
+export const is_private_message_event = (
+  event: Event,
+): event is PrivateMessageEvent =>
+  event.post_type == "message" &&
+  event.message_type == "private" &&
+  event.sub_type == "friend";
 
 export const is_at_self = (msg: Message) => {
   const self_id = get_config().self_id;

@@ -3,9 +3,11 @@ import { Event } from "../onebot/types/event/common.ts";
 import {
   is_group_message_event,
   is_heartbeat_event,
+  is_private_message_event,
 } from "../onebot/cqhttp.ts";
 import { handle_group_event } from "./message/group/index.ts";
 import { handle_heartbeat_event } from "./meta_event/heartbeat/index.ts";
+import { handle_private_event } from "./message/private/index.ts";
 import { load_handlers as load_group_handlers } from "./message/group/index.ts";
 import { load_handlers as load_private_handlers } from "./message/private/index.ts";
 import { load_handlers as load_heartbeat_handlers } from "./meta_event/heartbeat/index.ts";
@@ -39,6 +41,9 @@ export const handle_event = (event: Event) => {
   if (is_group_message_event(event)) {
     log(`group message event: ${JSON.stringify(event)}`);
     handle_group_event(event);
+  } else if (is_private_message_event(event)) {
+    log(`private message event: ${JSON.stringify(event)}`);
+    handle_private_event(event);
   } else if (is_heartbeat_event(event)) {
     log(`heartbeat event: ${JSON.stringify(event)}`);
     handle_heartbeat_event(event);
