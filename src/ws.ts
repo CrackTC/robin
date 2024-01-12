@@ -7,17 +7,21 @@ import { Event } from "./onebot/types/event/common.ts";
 export let WS_EVENT: WebSocket;
 export let WS_API: WebSocket;
 
+const on_message = (msg: MessageEvent) => {
+  const event: Event = JSON.parse(msg.data);
+  handle_event(event);
+};
+
 export const setup_ws_event = () => {
+  if (WS_EVENT) WS_EVENT.removeEventListener("message", on_message);
+
   const event_url = `${get_config().ws_addr}/event`;
 
   WS_EVENT = new WebSocket(event_url);
   WS_EVENT.addEventListener("open", () => {
     log(`event ws ${event_url} connected`);
   });
-  WS_EVENT.addEventListener("message", (msg) => {
-    const event: Event = JSON.parse(msg.data);
-    handle_event(event);
-  });
+  WS_EVENT.addEventListener("message", on_message);
   WS_EVENT.addEventListener("error", (e) => {
     error(`event ws error: ${e}`);
   });
