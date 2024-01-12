@@ -17,13 +17,28 @@
       "ill_input_match": [],
       "rate_limit_per_hour": 10,
       "model_tag": "gpt-4-1106-preview",
-      "model_ill": "gpt-4-vision-preview"
+      "model_ill": "gpt-4-vision-preview",
+      "reply_not_found": "再怎么找也找不到啦>_<",
+      "reply_limit": "说话太快啦～，再等{}秒吧"
     },
     "user_rank": {
-      "cron": "1 0 0 * * *"
+      "cron": "0 0 0 * * *"
     },
     "word_cloud": {
-      "cron": "1 0 0 * * *"
+      "cron": "0 0 0 * * *"
+    },
+    "chatbot": {
+      "openai_api_key": "",
+      "rate_limit_per_hour": 10,
+      "model": "gpt-4-1106-preview",
+      "model_regex_string": "^切换模型 ?(.+)$",
+      "clear_regex_string": "^重置会话$",
+      "rollback_regex_string": "^回滚会话$",
+      "model_reply": "切换模型成功",
+      "clear_reply": "重置会话成功",
+      "rollback_reply": "回滚会话成功",
+      "error_reply": "发生错误，请重试",
+      "limit_reply": "说话太快啦～，再等{}秒吧"
     }
   }
 }
