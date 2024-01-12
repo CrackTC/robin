@@ -76,7 +76,7 @@ function loadConfig() {
 
 let CONFIG: Config;
 
-const watch_config = async () => {
+export const watch_config = async () => {
   const configWatcher = Deno.watchFs("data/");
   const reloadConfig = debounce(() => {
     try {
@@ -104,7 +104,6 @@ const watch_config = async () => {
 export function get_config() {
   if (!CONFIG) {
     CONFIG = loadConfig();
-    watch_config();
     on_config_change();
   }
   return CONFIG;
