@@ -1,11 +1,11 @@
 import { require_args, verify_token, wrap } from "../../wrappers.ts";
 import { fail, ok } from "../common.ts";
+import { get_handler_groups } from "../../handlers/message/group/index.ts";
 import {
   disable_handler,
   enable_handler,
-  get_handler_groups,
   get_handlers,
-} from "../../handlers/base.ts";
+} from "../../handlers/index.ts";
 
 const all = () => ok(get_handlers());
 const enable = (args: Record<string, string>) =>

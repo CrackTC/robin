@@ -1,8 +1,8 @@
 import OpenAI from "https://deno.land/x/openai@v4.24.0/mod.ts";
 import { encode } from "https://deno.land/std@0.202.0/encoding/base64.ts";
-import { error, log, spawn_get_output } from "../../utils.ts";
+import { error, log, spawn_get_output } from "../../../../utils.ts";
 import { config, on_config_change as base_config_change } from "./config.ts";
-import { rate_limit, task_queue, wrap } from "../../wrappers.ts";
+import { rate_limit, task_queue, wrap } from "../../../../wrappers.ts";
 import PROMPTS from "./prompts.json" with { type: "json" };
 
 import {
@@ -18,10 +18,10 @@ import {
   mk_reply,
   mk_text,
   send_group_message,
-} from "../../onebot/cqhttp.ts";
-import { GroupEventHandleFunc, GroupEventHandler } from "../base.ts";
-import { GroupMessageEvent } from "../../onebot/types/event/message.ts";
-import { Message } from "../../onebot/types/message.ts";
+} from "../../../../onebot/cqhttp.ts";
+import { GroupEventHandleFunc, GroupEventHandler } from "../types.ts";
+import { GroupMessageEvent } from "../../../../onebot/types/event/message.ts";
+import { Message } from "../../../../onebot/types/message.ts";
 
 const search_ill_by_tags = async (tags: string[]) => {
   while (true) {
@@ -177,7 +177,7 @@ const on_config_change = () => {
   client = new OpenAI({ apiKey: config.openai_api_key });
 };
 
-const search_ill: GroupEventHandler = {
+export default new GroupEventHandler({
   name: "search_ill",
   handle_func: wrap<GroupEventHandleFunc>(handle_func)
     .with(task_queue)
@@ -197,6 +197,4 @@ const search_ill: GroupEventHandler = {
       },
     })).call,
   on_config_change,
-};
-
-export default search_ill;
+});

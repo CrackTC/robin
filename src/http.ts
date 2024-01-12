@@ -1,5 +1,5 @@
 import { api_handler } from "./api/api.ts";
-import { handle_event } from "./handlers/base.ts";
+import { handle_event } from "./handlers/index.ts";
 import { get_config } from "./config.ts";
 import { log } from "./utils.ts";
 

@@ -1,11 +1,12 @@
 import Cron from "https://deno.land/x/croner@8.0.0/src/croner.js";
-import db from "../../db.ts";
-import { get_handler_info, GroupEventHandler } from "../base.ts";
-import { backup, error, spawn_set_input } from "../../utils.ts";
+import db from "../../../../db.ts";
+import { get_group_event_handler } from "../index.ts";
+import { backup, error, spawn_set_input } from "../../../../utils.ts";
 import { config, on_config_change as base_config_change } from "./config.ts";
-import { task_queue, wrap } from "../../wrappers.ts";
-import { mk_image, send_group_message } from "../../onebot/cqhttp.ts";
-import { GroupMessageEvent } from "../../onebot/types/event/message.ts";
+import { task_queue, wrap } from "../../../../wrappers.ts";
+import { mk_image, send_group_message } from "../../../../onebot/cqhttp.ts";
+import { GroupMessageEvent } from "../../../../onebot/types/event/message.ts";
+import { GroupEventHandler } from "../types.ts";
 
 const NAME = "word_cloud";
 
@@ -76,17 +77,19 @@ const send_queued = wrap(send_word_cloud).with(task_queue).call;
 
 const on_config_change = () => {
   base_config_change();
-  const info = get_handler_info(NAME);
+  const info = get_group_event_handler(NAME);
+  if (info === null) return;
+
   if (job !== undefined) job.stop();
   job = new Cron(config.cron, { name: NAME }, () => {
     if (info.enabled) info.groups.forEach(send_queued);
   });
 };
 
-const word_cloud: GroupEventHandler = {
+const word_cloud = new GroupEventHandler({
   name: NAME,
   handle_func,
   on_config_change,
-};
+});
 
 export default word_cloud;

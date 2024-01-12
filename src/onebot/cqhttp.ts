@@ -107,7 +107,7 @@ const ws_fetch = (ws: WebSocket, msg: string, echo: string) =>
         resolve(data);
       }
     };
-    ws.addEventListener("message", listener)
+    ws.addEventListener("message", listener);
     ws.send(msg);
   });
 

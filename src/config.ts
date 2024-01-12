@@ -1,6 +1,6 @@
 import { assert, error, log } from "./utils.ts";
 import { debounce } from "https://deno.land/std@0.210.0/async/debounce.ts";
-import { on_config_change } from "./handlers/base.ts";
+import { on_config_change } from "./handlers/index.ts";
 
 const FALLBACK_TOKEN = crypto.randomUUID();
 

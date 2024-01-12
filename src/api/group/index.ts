@@ -1,14 +1,14 @@
 import {
   add_group_to_handler,
-  get_groups,
   remove_group_from_handler,
-} from "../../handlers/base.ts";
+} from "../../handlers/message/group/index.ts";
 import { is_decimal_number } from "../../utils.ts";
 import { fail, ok } from "../common.ts";
 import { require_args, verify_token, wrap } from "../../wrappers.ts";
 import { ApiHandler } from "../api.ts";
+import { get_config } from "../../config.ts";
 
-const all = () => ok(get_groups());
+const all = () => ok(get_config().groups);
 
 const add = (args: Record<string, string>) => {
   const group = args["group"];

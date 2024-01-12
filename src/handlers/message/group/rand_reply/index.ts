@@ -5,9 +5,9 @@ import {
   mk_reply,
   mk_text,
   send_group_message,
-} from "../../onebot/cqhttp.ts";
-import { GroupMessageEvent } from "../../onebot/types/event/message.ts";
-import { GroupEventHandler } from "../base.ts";
+} from "../../../../onebot/cqhttp.ts";
+import { GroupMessageEvent } from "../../../../onebot/types/event/message.ts";
+import { GroupEventHandler } from "../types.ts";
 
 const handle_func = async (event: GroupMessageEvent) => {
   if (!is_at_self(event.message)) return;
@@ -26,10 +26,8 @@ const handle_func = async (event: GroupMessageEvent) => {
   await send_group_message(event.group_id, [mk_reply(event), content]);
 };
 
-const rand_reply: GroupEventHandler = {
+export default new GroupEventHandler({
   name: "rand_reply",
   handle_func,
   on_config_change,
-};
-
-export default rand_reply;
+});
