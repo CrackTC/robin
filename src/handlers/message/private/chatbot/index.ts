@@ -25,7 +25,7 @@ db.execute(`
 
 db.execute(`
   CREATE TABLE IF NOT EXISTS ${NAME}_model (
-    user_id INTEGER NOT NULL,
+    user_id INTEGER NOT NULL PRIMARY KEY,
     model TEXT NOT NULL
   )
 `);
