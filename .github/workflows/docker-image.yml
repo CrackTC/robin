@@ -24,7 +24,7 @@ jobs:
           git diff --name-only ${{ github.event.before }} ${{ github.sha }} > files.txt
           while IFS= read -r file
           do
-            if [[ $file == "src/"* || $file == "fonts/"* ]]; then
+            if [[ $file == "src/"* || $file == "fonts/"* || $file == ".github/"* ]]; then
               echo "run_job=true" >> $GITHUB_OUTPUT
               break
             fi
@@ -39,7 +39,7 @@ jobs:
       - uses: denoland/setup-deno@v1
         with:
           deno-version: v1.x
-      - run: deno test --allow-all --import-map=src/test/importmap.json
+      - run: cd ./src && deno test --allow-all --import-map=src/test/importmap.json
   build:
     name: Build docker image
     needs: test
