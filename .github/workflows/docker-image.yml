@@ -39,7 +39,7 @@ jobs:
       - uses: denoland/setup-deno@v1
         with:
           deno-version: v1.x
-      - run: cd ./src && deno test --allow-all --import-map=src/test/importmap.json
+      - run: cd ./src && deno test --allow-all --import-map=test/importmap.json
   build:
     name: Build docker image
     needs: test
