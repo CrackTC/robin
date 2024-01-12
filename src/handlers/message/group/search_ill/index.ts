@@ -162,7 +162,7 @@ const handle_func = async (event: GroupMessageEvent) => {
   );
 };
 
-const PREFIX = "./handlers/search_ill";
+const PREFIX = "./handlers/message/group/search_ill";
 const SEARCH_ILL_PY = `${PREFIX}/search_ill.py`;
 
 const SEARCH_ILL = PROMPTS.search_ill as ChatCompletionTool;

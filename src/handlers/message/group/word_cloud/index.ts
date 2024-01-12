@@ -49,7 +49,7 @@ const handle_func = (event: GroupMessageEvent) => {
 };
 
 const IMAGE_PATH = `/dev/shm/${NAME}.png`;
-const WORD_CLOUD_PY = `./handlers/${NAME}/word_cloud.py`;
+const WORD_CLOUD_PY = `./handlers/message/group/${NAME}/word_cloud.py`;
 
 const send_word_cloud = async (group_id: number) => {
   const messages = get_group_messages(group_id);
