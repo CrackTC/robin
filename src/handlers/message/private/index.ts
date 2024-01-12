@@ -13,6 +13,7 @@ const get_private_event_handlers = () =>
 
 export const handle_private_event = (event: PrivateMessageEvent) => {
   get_private_event_handlers()
+    .filter((handler) => handler.enabled)
     .forEach(async (handler) => {
       try {
         log(`handling private message event with handler ${handler.name}`);

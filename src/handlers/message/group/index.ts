@@ -14,6 +14,7 @@ const get_group_event_handlers = () =>
 
 export const handle_group_event = (event: GroupMessageEvent) => {
   get_group_event_handlers()
+    .filter((handler) => handler.enabled)
     .filter((handler) => handler.groups?.includes(event.group_id))
     .forEach(async (handler) => {
       try {

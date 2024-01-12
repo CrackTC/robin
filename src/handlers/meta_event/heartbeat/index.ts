@@ -12,14 +12,16 @@ const get_heartbeat_event_handlers = () =>
   Object.values(event_handlers).filter(is_heartbeat_event_handler);
 
 export const handle_heartbeat_event = (event: HeartbeatEvent) => {
-  get_heartbeat_event_handlers().forEach(async (handler) => {
-    try {
-      log(`handling event with heartbeat handler ${handler.name}`);
-      await handler.handle_func(event);
-    } catch (e) {
-      log(`error in heartbeat handler ${handler.name}: ${e}`);
-    }
-  });
+  get_heartbeat_event_handlers()
+    .filter((handler) => handler.enabled)
+    .forEach(async (handler) => {
+      try {
+        log(`handling event with heartbeat handler ${handler.name}`);
+        await handler.handle_func(event);
+      } catch (e) {
+        log(`error in heartbeat handler ${handler.name}: ${e}`);
+      }
+    });
 };
 
 export const load_handlers = async () => {
