@@ -7,7 +7,7 @@ const mock_config = {
 };
 
 Deno.test("import test", async () => {
-  Deno.mkdirSync("./data");
+  Deno.mkdirSync("./data", { recursive: true });
   Deno.writeTextFileSync("./data/config.json", JSON.stringify(mock_config));
   try {
     await load_handlers();
