@@ -72,18 +72,18 @@ export const rate_limit = <TInput>(
     const id = get_id(input);
     if (!(id in history)) history[id] = [];
     const times = history[id];
-    const now = new Date();
-    while (times.length > 0 && times[0] + period < now.getTime()) times.shift();
+    const now = Date.now();
+    while (times.length > 0 && times[0] + period < now) times.shift();
     if (times.length >= limit) {
       while (times.length > limit) times.shift();
 
       const wait_seconds = Math.ceil(
-        (times[0] + period - now.getTime()) / 1000,
+        (times[0] + period - now) / 1000,
       );
       exceed_action(input, wait_seconds);
       return Promise.resolve();
     }
-    times.push(now.getTime());
+    times.push(now);
     return handler(input);
   };
 };
