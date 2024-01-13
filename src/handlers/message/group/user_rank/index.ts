@@ -1,13 +1,16 @@
 import Cron from "https://deno.land/x/croner@8.0.0/src/croner.js";
 import db from "../../../../db.ts";
-import { get_group_event_handler } from "../index.ts";
-import { backup, error } from "../../../../utils.ts";
-import { config, on_config_change as base_config_change } from "./config.ts";
 import { mk_text, send_group_message } from "../../../../onebot/cqhttp.ts";
 import { GroupMessageEvent } from "../../../../onebot/types/event/message.ts";
+import { backup, error } from "../../../../utils.ts";
+import { HandlerConfig } from "../../../common.ts";
+import { get_group_event_handler } from "../index.ts";
 import { GroupEventHandler } from "../types.ts";
 
 const NAME = "user_rank";
+const config = new HandlerConfig(NAME, {
+  cron: "0 0 0 * * *",
+});
 
 db.execute(`
   CREATE TABLE IF NOT EXISTS ${NAME} (
@@ -88,19 +91,17 @@ const send_description = async (group_id: number) => {
 
 let job: Cron;
 
-const on_config_change = () => {
-  base_config_change();
-  const info = get_group_event_handler(NAME);
-  if (info === null) return;
-
-  if (job !== undefined) job.stop();
-  job = new Cron(config.cron, { name: NAME }, () => {
-    if (info.enabled) info.groups.forEach(send_description);
-  });
-};
-
 export default new GroupEventHandler({
   name: NAME,
   handle_func,
-  on_config_change,
+  on_config_change: (new_config) => {
+    config.on_config_change(new_config);
+    const info = get_group_event_handler(NAME);
+    if (info === null) return;
+
+    if (job !== undefined) job.stop();
+    job = new Cron(config.value.cron, { name: NAME }, () => {
+      if (info.enabled) info.groups.forEach(send_description);
+    });
+  },
 });

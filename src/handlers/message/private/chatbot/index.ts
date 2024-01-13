@@ -1,18 +1,31 @@
 import OpenAI from "https://deno.land/x/openai@v4.24.5/mod.ts";
 import { ChatCompletionMessageParam } from "https://deno.land/x/openai@v4.24.5/resources/mod.ts";
 import db from "../../../../db.ts";
-import { config, on_config_change as base_config_change } from "./config.ts";
-import { PrivateMessageEvent } from "../../../../onebot/types/event/message.ts";
 import {
   mk_reply,
   mk_text,
   send_private_message,
 } from "../../../../onebot/cqhttp.ts";
+import { PrivateMessageEvent } from "../../../../onebot/types/event/message.ts";
 import { error } from "../../../../utils.ts";
-import { PrivateEventHandleFunc, PrivateEventHandler } from "../types.ts";
 import { rate_limit, task_queue, wrap } from "../../../../wrappers.ts";
+import { HandlerConfig } from "../../../common.ts";
+import { PrivateEventHandleFunc, PrivateEventHandler } from "../types.ts";
 
 const NAME = "chatbot";
+const config = new HandlerConfig(NAME, {
+  openai_api_key: "",
+  rate_limit_per_hour: 10,
+  model: "gpt-4-1106-preview",
+  model_regex_string: "^切换模型 ?(.+)$",
+  clear_regex_string: "^重置会话$",
+  rollback_regex_string: "^回滚会话$",
+  model_reply: "切换模型成功",
+  clear_reply: "重置会话成功",
+  rollback_reply: "回滚会话成功",
+  error_reply: "发生错误，请重试",
+  limit_reply: "说话太快啦～，再等{}秒吧",
+});
 
 db.execute(`
   CREATE TABLE IF NOT EXISTS ${NAME} (
@@ -73,7 +86,7 @@ const get_model = (user_id: number) => {
     `SELECT model FROM ${NAME}_model WHERE user_id = ?`,
     [user_id],
   );
-  return results.length > 0 ? results[0][0] : config.model;
+  return results.length > 0 ? results[0][0] : config.value.model;
 };
 
 const set_model = (user_id: number, model: string) => {
@@ -89,14 +102,6 @@ let model_regex: RegExp;
 let clear_regex: RegExp;
 let rollback_regex: RegExp;
 
-const on_config_change = () => {
-  base_config_change();
-  client = new OpenAI({ apiKey: config.openai_api_key });
-  model_regex = new RegExp(config.model_regex_string);
-  clear_regex = new RegExp(config.clear_regex_string);
-  rollback_regex = new RegExp(config.rollback_regex_string);
-};
-
 const handle_func = (event: PrivateMessageEvent) => {
   let message: string;
   if (typeof event.message === "string") {
@@ -111,7 +116,7 @@ const handle_func = (event: PrivateMessageEvent) => {
     remove_all(event.user_id);
     send_private_message(event.user_id, [
       mk_reply(event),
-      mk_text(config.clear_reply),
+      mk_text(config.value.clear_reply),
     ]);
     return;
   }
@@ -120,7 +125,7 @@ const handle_func = (event: PrivateMessageEvent) => {
     remove_last(event.user_id);
     send_private_message(event.user_id, [
       mk_reply(event),
-      mk_text(config.rollback_reply),
+      mk_text(config.value.rollback_reply),
     ]);
     return;
   }
@@ -131,7 +136,7 @@ const handle_func = (event: PrivateMessageEvent) => {
       set_model(event.user_id, model);
       send_private_message(event.user_id, [
         mk_reply(event),
-        mk_text(config.model_reply),
+        mk_text(config.value.model_reply),
       ]);
       return;
     }
@@ -150,7 +155,7 @@ const handle_func = (event: PrivateMessageEvent) => {
       error(err);
       send_private_message(event.user_id, [
         mk_reply(event),
-        mk_text(config.error_reply),
+        mk_text(config.value.error_reply),
       ]);
       return null;
     })
@@ -168,17 +173,23 @@ const handle_func = (event: PrivateMessageEvent) => {
 
 export default new PrivateEventHandler({
   name: NAME,
-  on_config_change,
+  on_config_change: (new_config) => {
+    config.on_config_change(new_config);
+    client = new OpenAI({ apiKey: config.value.openai_api_key });
+    model_regex = new RegExp(config.value.model_regex_string);
+    clear_regex = new RegExp(config.value.clear_regex_string);
+    rollback_regex = new RegExp(config.value.rollback_regex_string);
+  },
   handle_func: wrap<PrivateEventHandleFunc>(handle_func)
     .with(task_queue)
     .with(rate_limit({
-      get_limit: () => config.rate_limit_per_hour,
+      get_limit: () => config.value.rate_limit_per_hour,
       get_period: () => 3600 * 1000,
       get_id: (event) => event.user_id,
       exceed_action: (event, wait) => {
         send_private_message(event.user_id, [
           mk_reply(event),
-          mk_text(config.limit_reply.replace("{}", wait.toString())),
+          mk_text(config.value.limit_reply.replace("{}", wait.toString())),
         ]);
       },
     })).call,

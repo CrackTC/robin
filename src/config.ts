@@ -1,10 +1,10 @@
-import { assert, error, log } from "./utils.ts";
 import { debounce } from "https://deno.land/std@0.210.0/async/debounce.ts";
-import { on_config_change } from "./handlers/index.ts";
+import { EventEmitter } from "https://deno.land/x/eventemitter@1.2.4/mod.ts";
+import { assert, error, log } from "./utils.ts";
 
 const FALLBACK_TOKEN = crypto.randomUUID();
 
-class Config {
+export class Config {
   self_id: number;
   port: number;
   http_addr: string;
@@ -28,12 +28,16 @@ class Config {
   }
 }
 
-function readConfig(): Config {
+export const config_events = new EventEmitter<{
+  change(config: Config): void;
+}>();
+
+export const read_config = (): Config => {
   const json = JSON.parse(Deno.readTextFileSync("data/config.json"));
   return { ...new Config(), ...json };
-}
+};
 
-function verifyConfig(config: Config) {
+export const verify_config = (config: Config) => {
   assert(typeof config.self_id === "number", "self_id must be a number");
   assert(config.self_id > 0, "self_id must be positive");
 
@@ -65,14 +69,14 @@ function verifyConfig(config: Config) {
   assert(config.retry_interval >= 0, "retry_interval must be non-negative");
 
   assert(typeof config.handlers === "object", "handlers must be an object");
-}
+};
 
-function loadConfig() {
-  const config = readConfig();
-  verifyConfig(config);
+export const load_config = () => {
+  const config = read_config();
+  verify_config(config);
   log("api_token:", config.api_token);
   return config;
-}
+};
 
 let CONFIG: Config;
 
@@ -80,8 +84,8 @@ export const watch_config = async () => {
   const configWatcher = Deno.watchFs("data/");
   const reloadConfig = debounce(() => {
     try {
-      CONFIG = loadConfig();
-      on_config_change();
+      CONFIG = load_config();
+      config_events.emit("change", CONFIG);
       log("config reloaded");
     } catch (e) {
       error(e);
@@ -101,10 +105,10 @@ export const watch_config = async () => {
   }
 };
 
-export function get_config() {
+export const get_config = () => {
   if (!CONFIG) {
-    CONFIG = loadConfig();
-    on_config_change();
+    CONFIG = load_config();
+    config_events.emit("change", CONFIG);
   }
   return CONFIG;
-}
+};

@@ -56,10 +56,6 @@ export const handle_event = (event: Event) => {
   }
 };
 
-export const on_config_change = () =>
-  Object.values(event_handlers)
-    .forEach((handler) => handler.on_config_change?.());
-
 export const load_handlers = async () => {
   await Promise.all([
     load_group_handlers(),

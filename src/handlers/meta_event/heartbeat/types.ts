@@ -1,3 +1,4 @@
+import { Config } from "../../../config.ts";
 import { HeartbeatEvent } from "../../../onebot/types/event/meta.ts";
 import { EventHandler } from "../../types.ts";
 
@@ -11,7 +12,7 @@ export class HeartbeatEventHandler extends EventHandler {
     { name, handle_func, on_config_change }: {
       name: string;
       handle_func: HeartbeatEventHandleFunc;
-      on_config_change?: () => void;
+      on_config_change?: (config: Config) => void;
     },
   ) {
     super(name, "heartbeat", on_config_change);

@@ -1,17 +1,11 @@
-import OpenAI from "https://deno.land/x/openai@v4.24.5/mod.ts";
 import { encode } from "https://deno.land/std@0.202.0/encoding/base64.ts";
-import { error, log, spawn_get_output } from "../../../../utils.ts";
-import { config, on_config_change as base_config_change } from "./config.ts";
-import { rate_limit, task_queue, wrap } from "../../../../wrappers.ts";
-import PROMPTS from "./prompts.json" with { type: "json" };
-
+import OpenAI from "https://deno.land/x/openai@v4.24.5/mod.ts";
 import {
   ChatCompletion,
   ChatCompletionContentPart,
   ChatCompletionMessageParam,
   ChatCompletionTool,
 } from "https://deno.land/x/openai@v4.24.5/resources/mod.ts";
-
 import {
   is_at_self,
   mk_image,
@@ -19,9 +13,24 @@ import {
   mk_text,
   send_group_message,
 } from "../../../../onebot/cqhttp.ts";
-import { GroupEventHandleFunc, GroupEventHandler } from "../types.ts";
 import { GroupMessageEvent } from "../../../../onebot/types/event/message.ts";
 import { Message } from "../../../../onebot/types/message.ts";
+import { error, log, spawn_get_output } from "../../../../utils.ts";
+import { rate_limit, task_queue, wrap } from "../../../../wrappers.ts";
+import { HandlerConfig } from "../../../common.ts";
+import { GroupEventHandleFunc, GroupEventHandler } from "../types.ts";
+import PROMPTS from "./prompts.json" with { type: "json" };
+
+const config = new HandlerConfig("search_ill", {
+  pixiv_refresh_token: "",
+  openai_api_key: "",
+  ill_input_match: [] as string[],
+  rate_limit_per_hour: 10,
+  model_tag: "gpt-4-1106-preview",
+  model_ill: "gpt-4-vision-preview",
+  reply_not_found: "再怎么找也找不到啦>_<",
+  reply_limit: "说话太快啦～，再等{}秒吧",
+});
 
 const search_ill_by_tags = async (tags: string[]) => {
   while (true) {
@@ -88,7 +97,7 @@ const download_large = async (ids: number[]) => {
 
 const get_tag_reply = (input: string) =>
   client.chat.completions.create({
-    model: config.model_tag,
+    model: config.value.model_tag,
     messages: [TAG_PROMPT, { role: "user", content: input }],
     tools: [SEARCH_ILL],
     tool_choice: SEARCH_ILL,
@@ -96,7 +105,7 @@ const get_tag_reply = (input: string) =>
 
 const get_choice_reply = (image_contents: ChatCompletionContentPart[]) =>
   client.chat.completions.create({
-    model: config.model_ill,
+    model: config.value.model_ill,
     messages: [ILL_PROMPT, { role: "user", content: image_contents }],
     max_tokens: 1000,
   });
@@ -126,7 +135,9 @@ const get_input = (message: Message) => {
       seg.type === "text" ? seg.data.text.trim() : ""
     ).join(" ");
   }
-  return config.ill_input_match.some((m) => input.includes(m)) ? input : "";
+  return config.value.ill_input_match.some((m) => input.includes(m))
+    ? input
+    : "";
 };
 
 const handle_func = async (event: GroupMessageEvent) => {
@@ -139,7 +150,7 @@ const handle_func = async (event: GroupMessageEvent) => {
     log("no ill found");
     send_group_message(event.group_id, [
       mk_reply(event),
-      mk_text(config.reply_not_found),
+      mk_text(config.value.reply_not_found),
     ]);
     return;
   }
@@ -171,27 +182,25 @@ const ILL_PROMPT = PROMPTS.ill_prompt as ChatCompletionMessageParam;
 
 let client: OpenAI;
 
-const on_config_change = () => {
-  base_config_change();
-  Deno.env.set("PIXIV_REFRESH_TOKEN", config.pixiv_refresh_token);
-  client = new OpenAI({ apiKey: config.openai_api_key });
-};
-
 export default new GroupEventHandler({
   name: "search_ill",
   handle_func: wrap<GroupEventHandleFunc>(handle_func)
     .with(task_queue)
     .with(rate_limit({
-      get_limit: () => config.rate_limit_per_hour,
+      get_limit: () => config.value.rate_limit_per_hour,
       get_period: () => 3600 * 1000,
       get_id: (event) => event.group_id,
       validate: (event) => get_input(event.message) != "",
       exceed_action: (event, wait) => {
         send_group_message(event.group_id, [
           mk_reply(event),
-          mk_text(config.reply_limit.replace("{}", wait.toString())),
+          mk_text(config.value.reply_limit.replace("{}", wait.toString())),
         ]);
       },
     })).call,
-  on_config_change,
+  on_config_change: (new_config) => {
+    config.on_config_change(new_config);
+    Deno.env.set("PIXIV_REFRESH_TOKEN", config.value.pixiv_refresh_token);
+    client = new OpenAI({ apiKey: config.value.openai_api_key });
+  },
 });
