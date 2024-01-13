@@ -17,7 +17,7 @@ export const handle_heartbeat_event = (event: HeartbeatEvent) => {
     .filter((handler) => handler.enabled)
     .forEach(async (handler) => {
       try {
-        log(`handling event with heartbeat handler ${handler.name}`);
+        // log(`handling event with heartbeat handler ${handler.name}`);
         await handler.handle_func(event);
       } catch (e) {
         log(`error in heartbeat handler ${handler.name}: ${e}`);

@@ -45,10 +45,14 @@ export const get_handlers = () =>
 
 export const handle_event = (event: Event) => {
   if (is_group_message_event(event)) {
-    log(`group message event: ${JSON.stringify(event)}`);
+    log(
+      `[group] [${event.group_id}] ${
+        event.sender.card ?? event.sender.nickname
+      }: ${event.message}`,
+    );
     handle_group_event(event);
   } else if (is_private_message_event(event)) {
-    log(`private message event: ${JSON.stringify(event)}`);
+    log(`[private] ${event.sender.nickname}: ${event.message}`);
     handle_private_event(event);
   } else if (is_heartbeat_event(event)) {
     // log(`heartbeat event: ${JSON.stringify(event)}`);
