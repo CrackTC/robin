@@ -3,15 +3,15 @@ import {
   assertMatch,
   assertThrows,
 } from "https://deno.land/std@0.92.0/testing/asserts.ts";
+import { sleep } from "https://deno.land/x/sleep@v1.2.1/sleep.ts";
 import {
-  assert as util_assert,
   backup,
   heartbeat_start,
   is_decimal_number,
   spawn_get_output,
   spawn_set_input,
+  assert as util_assert,
 } from "../utils.ts";
-import { sleep } from "https://deno.land/x/sleep@v1.2.1/sleep.ts";
 
 // Test for assert function
 Deno.test("assert should throw an error if the condition is false", () => {

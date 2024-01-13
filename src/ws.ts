@@ -1,8 +1,8 @@
-import { get_config } from "./config.ts";
-import { error, log } from "./utils.ts";
 import { sleep } from "https://deno.land/x/sleep@v1.2.1/sleep.ts";
+import { get_config } from "./config.ts";
 import { handle_event } from "./handlers/index.ts";
 import { Event } from "./onebot/types/event/common.ts";
+import { error, log } from "./utils.ts";
 
 export let WS_EVENT: WebSocket;
 export let WS_API: WebSocket;

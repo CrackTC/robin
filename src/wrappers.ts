@@ -1,7 +1,7 @@
-import { get_config } from "./config.ts";
-import { fail } from "./api/common.ts";
-import { error } from "./utils.ts";
 import { ApiHandler } from "./api/api.ts";
+import { fail } from "./api/common.ts";
+import { get_config } from "./config.ts";
+import { error } from "./utils.ts";
 
 type Wrapper<Fn extends CallableFunction> = (fn: Fn) => Fn;
 
