@@ -1,5 +1,6 @@
 import {
   is_at_self,
+  mk_at,
   mk_image,
   mk_reply,
   mk_text,
@@ -28,7 +29,7 @@ const handle_func = async (event: GroupMessageEvent) => {
     : config.value.image_paths[rand - text_len];
 
   const content = is_text ? mk_text(entry) : mk_image(Deno.readFileSync(entry));
-  await send_group_message(event.group_id, [mk_reply(event), content]);
+  await send_group_message(event.group_id, [mk_reply(event), mk_at(event.user_id), content]);
 };
 
 export default new GroupEventHandler({

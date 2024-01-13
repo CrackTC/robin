@@ -8,6 +8,7 @@ import {
 } from "https://deno.land/x/openai@v4.24.5/resources/mod.ts";
 import {
   is_at_self,
+  mk_at,
   mk_image,
   mk_reply,
   mk_text,
@@ -150,6 +151,7 @@ const handle_func = async (event: GroupMessageEvent) => {
     log("no ill found");
     send_group_message(event.group_id, [
       mk_reply(event),
+      mk_at(event.user_id),
       mk_text(config.value.reply_not_found),
     ]);
     return;
@@ -167,10 +169,12 @@ const handle_func = async (event: GroupMessageEvent) => {
   });
 
   const [[_, path]] = await download_large([ids[choice]]);
-  send_group_message(
-    event.group_id,
-    [mk_reply(event), mk_image(Deno.readFileSync(path)), mk_text(url)],
-  );
+  send_group_message(event.group_id, [
+    mk_reply(event),
+    mk_at(event.user_id),
+    mk_image(Deno.readFileSync(path)),
+    mk_text(url),
+  ]);
 };
 
 const PREFIX = "./handlers/message/group/search_ill";
@@ -194,6 +198,7 @@ export default new GroupEventHandler({
       exceed_action: (event, wait) => {
         send_group_message(event.group_id, [
           mk_reply(event),
+          mk_at(event.user_id),
           mk_text(config.value.reply_limit.replace("{}", wait.toString())),
         ]);
       },
