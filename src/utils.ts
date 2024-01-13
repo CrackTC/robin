@@ -1,3 +1,4 @@
+import * as path from "https://deno.land/std@0.212.0/path/mod.ts";
 import { sleep } from "https://deno.land/x/sleep@v1.2.1/mod.ts";
 
 export function assert(
@@ -115,4 +116,16 @@ export const heartbeat_start = (interval: number, die: () => void) => {
   return () => {
     alive = true;
   };
+};
+
+export const import_dir = async function* (url: string) {
+  const dirname = path.dirname(path.fromFileUrl(url));
+  for (const { name, isDirectory } of Deno.readDirSync(dirname)) {
+    if (isDirectory) {
+      yield {
+        name,
+        module: await import(`${dirname}/${name}/index.ts`),
+      };
+    }
+  }
 };

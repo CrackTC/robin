@@ -1,6 +1,7 @@
 import { get_config } from "../../../config.ts";
 import { GroupMessageEvent } from "../../../onebot/types/event/message.ts";
 import { error, log } from "../../../utils.ts";
+import { load_handlers_from_url } from "../../common.ts";
 import { event_handlers } from "../../index.ts";
 import { EventHandler } from "../../types.ts";
 import { GroupEventHandler } from "./types.ts";
@@ -70,15 +71,7 @@ export const get_handler_groups = (handler_name: string) => {
   return handler.groups;
 };
 
-export const load_handlers = async () => {
-  for (const dirEntry of Deno.readDirSync("./handlers/message/group")) {
-    if (dirEntry.isDirectory) {
-      const item: GroupEventHandler =
-        (await import(`./${dirEntry.name}/index.ts`)).default;
-      event_handlers[item.name] = item;
-      item.on_config_change?.();
-      log(`loaded group handler ${item.name}`);
-    }
-  }
+export const load_group_handlers = async () => {
+  await load_handlers_from_url("group", import.meta.url);
   get_config().groups.forEach(add_group_to_handlers);
 };

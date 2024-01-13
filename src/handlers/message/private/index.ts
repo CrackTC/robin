@@ -1,5 +1,6 @@
 import { PrivateMessageEvent } from "../../../onebot/types/event/message.ts";
 import { error, log } from "../../../utils.ts";
+import { load_handlers_from_url } from "../../common.ts";
 import { event_handlers } from "../../index.ts";
 import { EventHandler } from "../../types.ts";
 import { PrivateEventHandler } from "./types.ts";
@@ -31,14 +32,5 @@ export const get_private_event_handler = (name: string) => {
   return handler;
 };
 
-export const load_handlers = async () => {
-  for (const dirEntry of Deno.readDirSync("./handlers/message/private")) {
-    if (dirEntry.isDirectory) {
-      const item: PrivateEventHandler =
-        (await import(`./${dirEntry.name}/index.ts`)).default;
-      event_handlers[item.name] = item;
-      item.on_config_change?.();
-      log(`loaded private handler ${item.name}`);
-    }
-  }
-};
+export const load_private_handlers = () =>
+  load_handlers_from_url("private", import.meta.url);

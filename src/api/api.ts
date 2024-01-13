@@ -1,6 +1,6 @@
+import { import_dir, log } from "../utils.ts";
 import { add_cors, json_header, wrap } from "../wrappers.ts";
 import { fail } from "./common.ts";
-import { log } from "../utils.ts";
 
 export type ApiHandler = (args: Record<string, string>) => Response;
 
@@ -30,11 +30,8 @@ export const api_handler = (request: Request) =>
 const mux_list: Record<string, typeof mux> = {};
 
 export const load_api = async () => {
-  for (const dirEntry of Deno.readDirSync("./api")) {
-    if (dirEntry.isDirectory) {
-      const module = await import(`./${dirEntry.name}/index.ts`);
-      mux_list[dirEntry.name] = module.default;
-      log(`Loaded mux ${dirEntry.name}`);
-    }
+  for await (const { name, module } of import_dir(import.meta.url)) {
+    mux_list[name] = module.default;
+    log(`Loaded mux ${name}`);
   }
 };

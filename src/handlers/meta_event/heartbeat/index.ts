@@ -1,5 +1,6 @@
 import { HeartbeatEvent } from "../../../onebot/types/event/meta.ts";
 import { log } from "../../../utils.ts";
+import { load_handlers_from_url } from "../../common.ts";
 import { event_handlers } from "../../index.ts";
 import { EventHandler } from "../../types.ts";
 import { HeartbeatEventHandler } from "./types.ts";
@@ -24,14 +25,5 @@ export const handle_heartbeat_event = (event: HeartbeatEvent) => {
     });
 };
 
-export const load_handlers = async () => {
-  for (const dirEntry of Deno.readDirSync("./handlers/meta_event/heartbeat")) {
-    if (dirEntry.isDirectory) {
-      const item: HeartbeatEventHandler =
-        (await import(`./${dirEntry.name}/index.ts`)).default;
-      event_handlers[item.name] = item;
-      item.on_config_change?.();
-      log(`loaded heartbeat handler ${item.name}`);
-    }
-  }
-};
+export const load_heartbeat_handlers = () =>
+  load_handlers_from_url("heartbeat", import.meta.url);
