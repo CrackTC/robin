@@ -34,11 +34,14 @@ const remove_last = (user_id: number) => {
   db.query(
     `
     DELETE FROM ${NAME}
-    WHERE user_id = ?
-    ORDER BY timestamp DESC
-    LIMIT 2
+    WHERE timestamp IN (
+      SELECT timestamp FROM ${NAME}
+      WHERE user_id = ?
+      ORDER BY timestamp DESC
+      LIMIT 2
+    ) AND user_id = ?
     `,
-    [user_id],
+    [user_id, user_id],
   );
 };
 
