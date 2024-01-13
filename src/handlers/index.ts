@@ -51,7 +51,7 @@ export const handle_event = (event: Event) => {
     log(`private message event: ${JSON.stringify(event)}`);
     handle_private_event(event);
   } else if (is_heartbeat_event(event)) {
-    log(`heartbeat event: ${JSON.stringify(event)}`);
+    // log(`heartbeat event: ${JSON.stringify(event)}`);
     handle_heartbeat_event(event);
   }
 };
