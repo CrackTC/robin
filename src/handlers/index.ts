@@ -48,11 +48,15 @@ export const handle_event = (event: Event) => {
     log(
       `[group] [${event.group_id}] ${
         event.sender.card ?? event.sender.nickname
-      }: ${event.message}`,
+      }: ${JSON.stringify(event.message)}`,
     );
     handle_group_event(event);
   } else if (is_private_message_event(event)) {
-    log(`[private] ${event.sender.nickname}: ${event.message}`);
+    log(
+      `[private] ${event.sender.nickname ?? event.user_id}: ${
+        JSON.stringify(event.message)
+      }`,
+    );
     handle_private_event(event);
   } else if (is_heartbeat_event(event)) {
     // log(`heartbeat event: ${JSON.stringify(event)}`);
