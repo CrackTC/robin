@@ -17,8 +17,8 @@ const config = new HandlerConfig(NAME, {
   openai_api_key: "",
   rate_limit_per_hour: 10,
   model: "gpt-4-1106-preview",
-  model_regex_string: "^切换模型 *([\\s\\S]+)$",
-  system_regex_string: "^切换预设 *([\\s\\S]+)$",
+  model_regex_string: "^切换模型 *([\\s\\S]*)$",
+  system_regex_string: "^切换预设 *([\\s\\S]*)$",
   clear_regex_string: "^重置会话$",
   rollback_regex_string: "^回滚会话$",
   model_reply: "切换模型成功",
@@ -95,7 +95,8 @@ const get_model = (user_id: number) => {
     `SELECT model FROM ${NAME}_model WHERE user_id = ?`,
     [user_id],
   );
-  return results.length > 0 ? results[0][0] : config.value.model;
+  if (results.length === 0 || results[0][0] === "") return config.value.model;
+  return results[0][0];
 };
 
 const set_model = (user_id: number, model: string) => {
