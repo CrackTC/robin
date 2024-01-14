@@ -17,10 +17,12 @@ const config = new HandlerConfig(NAME, {
   openai_api_key: "",
   rate_limit_per_hour: 10,
   model: "gpt-4-1106-preview",
-  model_regex_string: "^切换模型 ?(.+)$",
+  model_regex_string: "^切换模型 *([\s\S]+)$",
+  system_regex_string: "^切换预设 *([\s\S]+)$",
   clear_regex_string: "^重置会话$",
   rollback_regex_string: "^回滚会话$",
   model_reply: "切换模型成功",
+  system_reply: "切换预设成功",
   clear_reply: "重置会话成功",
   rollback_reply: "回滚会话成功",
   error_reply: "发生错误，请重试",
@@ -40,6 +42,13 @@ db.execute(`
   CREATE TABLE IF NOT EXISTS ${NAME}_model (
     user_id INTEGER NOT NULL PRIMARY KEY,
     model TEXT NOT NULL
+  )
+`);
+
+db.execute(`
+  CREATE TABLE IF NOT EXISTS ${NAME}_system (
+    user_id INTEGER NOT NULL PRIMARY KEY,
+    system TEXT NOT NULL
   )
 `);
 
@@ -97,8 +106,25 @@ const set_model = (user_id: number, model: string) => {
   );
 };
 
+const get_system = (user_id: number) => {
+  const results = db.query<[string]>(
+    `SELECT system FROM ${NAME}_system WHERE user_id = ?`,
+    [user_id],
+  );
+  return results.length > 0 ? results[0][0] : "";
+};
+
+const set_system = (user_id: number, system: string) => {
+  db.query(
+    `INSERT INTO ${NAME}_system (user_id, system) VALUES (?, ?)
+        ON CONFLICT(user_id) DO UPDATE SET system = ?`,
+    [user_id, system, system],
+  );
+};
+
 let client: OpenAI;
 let model_regex: RegExp;
+let system_regex: RegExp;
 let clear_regex: RegExp;
 let rollback_regex: RegExp;
 
@@ -111,6 +137,9 @@ const handle_func = (event: PrivateMessageEvent) => {
       seg.type === "text" ? seg.data.text : ""
     ).join(" ");
   }
+
+  message = message.trim();
+  if (message.length === 0) return;
 
   if (clear_regex.test(message)) {
     remove_all(event.user_id);
@@ -142,11 +171,24 @@ const handle_func = (event: PrivateMessageEvent) => {
     }
   }
 
-  message = message.trim();
-  if (message.length === 0) return;
+  if (system_regex.test(message)) {
+    const system = message.match(system_regex)?.[1];
+    if (system) {
+      set_system(event.user_id, system);
+      send_private_message(event.user_id, [
+        mk_reply(event),
+        mk_text(config.value.system_reply),
+      ]);
+      return;
+    }
+  }
 
   const model = get_model(event.user_id);
-  const messages = get_history(event.user_id) as ChatCompletionMessageParam[];
+  const system = get_system(event.user_id);
+
+  const messages: ChatCompletionMessageParam[] = [];
+  if (system !== "") messages.push({ role: "system", content: system });
+  messages.push(...get_history(event.user_id) as ChatCompletionMessageParam[]);
   messages.push({ role: "user", content: message });
 
   const time = Date.now();
@@ -177,6 +219,7 @@ export default new PrivateEventHandler({
     config.on_config_change(new_config);
     client = new OpenAI({ apiKey: config.value.openai_api_key });
     model_regex = new RegExp(config.value.model_regex_string);
+    system_regex = new RegExp(config.value.system_regex_string);
     clear_regex = new RegExp(config.value.clear_regex_string);
     rollback_regex = new RegExp(config.value.rollback_regex_string);
   },
