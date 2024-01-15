@@ -74,6 +74,11 @@ export const is_at_self = (msg: Message) => {
   return msg.some((seg) => seg.type === "at" && seg.data.qq === `${self_id}`);
 };
 
+export const get_safe_card = (card: string) => {
+  if (card.startsWith("\n")) return card.split("\n")[1].split("\t")[1];
+  else return card;
+};
+
 const get_api_body = <TParams>(
   endpoint: string,
   params: TParams,

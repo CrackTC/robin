@@ -1,6 +1,6 @@
 import Cron from "https://deno.land/x/croner@8.0.0/src/croner.js";
 import db from "../../../../db.ts";
-import { mk_text, send_group_message } from "../../../../onebot/cqhttp.ts";
+import { get_safe_card, mk_text, send_group_message } from "../../../../onebot/cqhttp.ts";
 import { GroupMessageEvent } from "../../../../onebot/types/event/message.ts";
 import { backup, error } from "../../../../utils.ts";
 import { HandlerConfig } from "../../../common.ts";
@@ -74,7 +74,7 @@ const get_description = (group_id: number) => {
 const handle_func = (event: GroupMessageEvent) => {
   const group_id = event.group_id;
   const name = event.sender.card != null
-    ? event.sender.card
+    ? get_safe_card(event.sender.card)
     : event.sender.nickname;
   insert(group_id, name);
 };
