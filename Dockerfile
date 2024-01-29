@@ -1,4 +1,4 @@
-FROM denoland/deno:ubuntu
+FROM denoland/deno:ubuntu-1.39.2
 EXPOSE 3101
 RUN apt-get update && apt-get install -y python3 pip
 COPY ./src/requirements.txt /app/requirements.txt
