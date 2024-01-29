@@ -38,7 +38,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: denoland/setup-deno@v1
         with:
-          deno-version: v1.x
+          deno-version: v1.39.2
       - run: cd ./src && deno test --allow-all --import-map=test/importmap.json
   build:
     name: Build docker image
