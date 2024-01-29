@@ -55,4 +55,4 @@ jobs:
         with:
           context: .
           push: true
-          tags: cracktc/qwordcloud:latest
+          tags: cracktc/robin:latest
