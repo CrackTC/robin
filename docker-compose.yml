@@ -1,6 +1,6 @@
 services:
   app:
-    image: cracktc/qwordcloud
+    image: cracktc/robin
     ports:
       - "3101:3101"
     volumes:
