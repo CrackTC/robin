@@ -11,6 +11,7 @@ import { GroupEventHandler } from "../types.ts";
 const NAME = "word_cloud";
 const config = new HandlerConfig(NAME, {
   cron: "0 0 0 * * *",
+  filter_regex: [] as string[],
 });
 
 db.execute(`
@@ -54,6 +55,14 @@ const handle_func = (event: GroupMessageEvent) => {
 const IMAGE_PATH = `/dev/shm/${NAME}.png`;
 const WORD_CLOUD_PY = `./handlers/message/group/${NAME}/word_cloud.py`;
 
+const filter = (message: string) => {
+  config.value.filter_regex.forEach((regstr) => {
+    const reg = new RegExp(regstr, "g");
+    message = message.replaceAll(reg, "");
+  });
+  return message;
+};
+
 const send_word_cloud = async (group_id: number) => {
   const messages = get_group_messages(group_id);
   clear_group(group_id);
@@ -63,7 +72,7 @@ const send_word_cloud = async (group_id: number) => {
     "python3",
     WORD_CLOUD_PY,
     `--output=${IMAGE_PATH}`,
-  ], messages.join("\n"));
+  ], filter(messages.join("\n")));
 
   const image = Deno.readFileSync(IMAGE_PATH);
   Deno.removeSync(IMAGE_PATH);
