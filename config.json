@@ -30,6 +30,7 @@
     },
     "chatbot": {
       "openai_api_key": "",
+      "gemini_api_key": "",
       "rate_limit_per_hour": 10,
       "model": "gpt-4-1106-preview",
       "model_regex_string": "^切换模型 ?(.+)$",
