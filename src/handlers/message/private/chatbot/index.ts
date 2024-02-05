@@ -1,5 +1,3 @@
-import OpenAI from "https://deno.land/x/openai@v4.24.5/mod.ts";
-import { ChatCompletionMessageParam } from "https://deno.land/x/openai@v4.24.5/resources/mod.ts";
 import db from "../../../../db.ts";
 import {
   mk_reply,
@@ -11,12 +9,16 @@ import { error } from "../../../../utils.ts";
 import { rate_limit, task_queue, wrap } from "../../../../wrappers.ts";
 import { HandlerConfig } from "../../../common.ts";
 import { PrivateEventHandleFunc, PrivateEventHandler } from "../types.ts";
+import { ChatBotClient, ChatBotMessage } from "./common.ts";
+import { GeminiChatBotClient } from "./gemini.ts";
+import { OpenAIChatBotClient } from "./openai.ts";
 
 const NAME = "chatbot";
 const config = new HandlerConfig(NAME, {
   openai_api_key: "",
+  gemini_api_key: "",
   rate_limit_per_hour: 10,
-  model: "gpt-4-1106-preview",
+  model: "gemini-pro",
   model_regex_string: "^切换模型 *([\\s\\S]*)$",
   system_regex_string: "^切换预设 *([\\s\\S]*)$",
   clear_regex_string: "^重置会话$",
@@ -123,7 +125,7 @@ const set_system = (user_id: number, system: string) => {
   );
 };
 
-let client: OpenAI;
+let client: ChatBotClient;
 let model_regex: RegExp;
 let system_regex: RegExp;
 let clear_regex: RegExp;
@@ -187,29 +189,31 @@ const handle_func = (event: PrivateMessageEvent) => {
   const model = get_model(event.user_id);
   const system = get_system(event.user_id);
 
-  const messages: ChatCompletionMessageParam[] = [];
+  const messages: ChatBotMessage[] = [];
   if (system !== "") messages.push({ role: "system", content: system });
-  messages.push(...get_history(event.user_id) as ChatCompletionMessageParam[]);
+  messages.push(...get_history(event.user_id) as ChatBotMessage[]);
   messages.push({ role: "user", content: message });
 
   const time = Date.now();
-  client.chat.completions.create({ messages, model })
+  client.get_reply(model, messages)
     .catch((err) => {
       error(err);
-      send_private_message(event.user_id, [
-        mk_reply(event),
-        mk_text(config.value.error_reply),
-      ]);
       return null;
     })
     .then((res) => {
-      if (res === null) return;
-      const reply = res.choices[0].message;
+      if (!res) {
+        send_private_message(event.user_id, [
+          mk_reply(event),
+          mk_text(config.value.error_reply),
+        ]);
+        return;
+      }
+
       add_history(event.user_id, "user", message, time);
-      add_history(event.user_id, reply.role, reply.content ?? "");
+      add_history(event.user_id, "assistant", res);
       send_private_message(event.user_id, [
         mk_reply(event),
-        mk_text(reply.content ?? ""),
+        mk_text(res),
       ]);
     });
 };
@@ -218,11 +222,16 @@ export default new PrivateEventHandler({
   name: NAME,
   on_config_change: (new_config) => {
     config.on_config_change(new_config);
-    client = new OpenAI({ apiKey: config.value.openai_api_key });
     model_regex = new RegExp(config.value.model_regex_string);
     system_regex = new RegExp(config.value.system_regex_string);
     clear_regex = new RegExp(config.value.clear_regex_string);
     rollback_regex = new RegExp(config.value.rollback_regex_string);
+
+    if (config.value.openai_api_key) {
+      client = new OpenAIChatBotClient(config.value.openai_api_key);
+    } else {
+      client = new GeminiChatBotClient(config.value.gemini_api_key);
+    }
   },
   handle_func: wrap<PrivateEventHandleFunc>(handle_func)
     .with(task_queue)
