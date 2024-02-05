@@ -1,6 +1,10 @@
 import Cron from "https://deno.land/x/croner@8.0.0/src/croner.js";
 import db from "../../../../db.ts";
-import { get_safe_card, mk_text, send_group_message } from "../../../../onebot/cqhttp.ts";
+import {
+  get_safe_card,
+  mk_text,
+  send_group_message,
+} from "../../../../onebot/cqhttp.ts";
 import { GroupMessageEvent } from "../../../../onebot/types/event/message.ts";
 import { backup, error } from "../../../../utils.ts";
 import { HandlerConfig } from "../../../common.ts";
