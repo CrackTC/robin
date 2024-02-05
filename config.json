@@ -24,6 +24,9 @@
     "user_rank": {
       "cron": "0 0 0 * * *"
     },
+    "dragon_count": {
+      "cron": "0 0 0 * * *"
+    },
     "word_cloud": {
       "cron": "0 0 0 * * *",
       "filter_regex": []
