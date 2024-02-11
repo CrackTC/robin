@@ -2,16 +2,23 @@ import Cron from "https://deno.land/x/croner@8.0.0/src/croner.js";
 import db from "../../../../db.ts";
 import { mk_image, send_group_message } from "../../../../onebot/cqhttp.ts";
 import { GroupMessageEvent } from "../../../../onebot/types/event/message.ts";
-import { backup, error, spawn_set_input } from "../../../../utils.ts";
+import { backup, error } from "../../../../utils.ts";
 import { task_queue, wrap } from "../../../../wrappers.ts";
 import { HandlerConfig } from "../../../common.ts";
 import { get_group_event_handler } from "../index.ts";
 import { GroupEventHandler } from "../types.ts";
+import { encode } from "https://deno.land/std@0.202.0/encoding/base64.ts";
 
 const NAME = "word_cloud";
 const config = new HandlerConfig(NAME, {
   cron: "0 0 0 * * *",
   filter_regex: [] as string[],
+  api_address: "",
+  cloud_options: {
+    background_image: undefined as string | undefined,
+    text: "",
+  },
+  background_image_path: undefined as string | undefined,
 });
 
 db.execute(`
@@ -52,9 +59,6 @@ const handle_func = (event: GroupMessageEvent) => {
   insert(group_id, message);
 };
 
-const IMAGE_PATH = `/dev/shm/${NAME}.png`;
-const WORD_CLOUD_PY = `./handlers/message/group/${NAME}/word_cloud.py`;
-
 const filter = (message: string) => {
   config.value.filter_regex.forEach((regstr) => {
     const reg = new RegExp(regstr, "g");
@@ -68,14 +72,20 @@ const send_word_cloud = async (group_id: number) => {
   clear_group(group_id);
   if (messages.length === 0) return;
 
-  await spawn_set_input([
-    "python3",
-    WORD_CLOUD_PY,
-    `--output=${IMAGE_PATH}`,
-  ], filter(messages.join("\n")));
+  config.value.cloud_options.text = filter(messages.join("\n"));
+  const resp = await fetch(config.value.api_address, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(config.value.cloud_options),
+  });
 
-  const image = Deno.readFileSync(IMAGE_PATH);
-  Deno.removeSync(IMAGE_PATH);
+  if (!resp.ok) {
+    error("word cloud api request failed");
+    return;
+  }
+
+  const image = new Uint8Array(await resp.arrayBuffer());
+
   const success = await send_group_message(group_id, [mk_image(image)]);
   if (!success) {
     error("send image failed");
@@ -92,6 +102,12 @@ const word_cloud = new GroupEventHandler({
   handle_func,
   on_config_change: (new_config) => {
     config.on_config_change(new_config);
+    const { background_image_path, cloud_options } = config.value;
+    if (background_image_path) {
+      const image = Deno.readFileSync(background_image_path);
+      cloud_options.background_image = encode(image);
+    }
+
     const info = get_group_event_handler(NAME);
     if (info === null) return;
 

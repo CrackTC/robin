@@ -29,7 +29,22 @@
     },
     "word_cloud": {
       "cron": "0 0 0 * * *",
-      "filter_regex": []
+      "filter_regex": [],
+      "api_address": "http://localhost:1235",
+      "cloud_options": {
+        "width": 1280,
+        "height": 720,
+        "colors": [
+          "aabf616a",
+          "aad08770",
+          "aaebcb8b",
+          "aaa3be8c",
+          "aa88c0d0"
+        ],
+        "padding": 5,
+        "background_image_blur": 5
+      },
+      "background_image_path": "./data/background.jpg"
     },
     "chatbot": {
       "openai_api_key": "",
