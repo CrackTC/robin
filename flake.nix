@@ -8,8 +8,6 @@
       let
         pkgs = import nixpkgs { inherit system; };
         python-pkgs = ps: with ps; [
-          jieba
-          wordcloud
           (
             buildPythonPackage rec {
               pname = "pixivpy3";
