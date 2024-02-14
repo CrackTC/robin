@@ -130,7 +130,7 @@ const get_input = (message: Message) => {
   if (!is_at_self(message)) return "";
 
   let input: string;
-  if (typeof message == "string") input = message.trim();
+  if (typeof message === "string") input = message.trim();
   else {
     input = message.map((seg) =>
       seg.type === "text" ? seg.data.text.trim() : ""

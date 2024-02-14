@@ -32,6 +32,7 @@ const handle_func = async (event: GroupMessageEvent) => {
   await send_group_message(event.group_id, [
     mk_reply(event),
     mk_at(event.user_id),
+    mk_text(" "),
     content,
   ]);
 };

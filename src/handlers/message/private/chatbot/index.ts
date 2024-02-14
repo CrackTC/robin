@@ -1,6 +1,6 @@
 import db from "../../../../db.ts";
 import {
-  mk_reply,
+  // mk_reply,
   mk_text,
   send_private_message,
 } from "../../../../onebot/cqhttp.ts";
@@ -147,7 +147,7 @@ const handle_func = (event: PrivateMessageEvent) => {
   if (clear_regex.test(message)) {
     remove_all(event.user_id);
     send_private_message(event.user_id, [
-      mk_reply(event),
+      // mk_reply(event),
       mk_text(config.value.clear_reply),
     ]);
     return;
@@ -156,7 +156,7 @@ const handle_func = (event: PrivateMessageEvent) => {
   if (rollback_regex.test(message)) {
     remove_last(event.user_id);
     send_private_message(event.user_id, [
-      mk_reply(event),
+      // mk_reply(event),
       mk_text(config.value.rollback_reply),
     ]);
     return;
@@ -167,7 +167,7 @@ const handle_func = (event: PrivateMessageEvent) => {
     if (model) {
       set_model(event.user_id, model);
       send_private_message(event.user_id, [
-        mk_reply(event),
+        // mk_reply(event),
         mk_text(config.value.model_reply),
       ]);
       return;
@@ -179,7 +179,7 @@ const handle_func = (event: PrivateMessageEvent) => {
     if (system) {
       set_system(event.user_id, system);
       send_private_message(event.user_id, [
-        mk_reply(event),
+        // mk_reply(event),
         mk_text(config.value.system_reply),
       ]);
       return;
@@ -203,7 +203,7 @@ const handle_func = (event: PrivateMessageEvent) => {
     .then((res) => {
       if (!res) {
         send_private_message(event.user_id, [
-          mk_reply(event),
+          // mk_reply(event),
           mk_text(config.value.error_reply),
         ]);
         return;
@@ -212,7 +212,7 @@ const handle_func = (event: PrivateMessageEvent) => {
       add_history(event.user_id, "user", message, time);
       add_history(event.user_id, "assistant", res);
       send_private_message(event.user_id, [
-        mk_reply(event),
+        // mk_reply(event),
         mk_text(res),
       ]);
     });
@@ -241,7 +241,7 @@ export default new PrivateEventHandler({
       get_id: (event) => event.user_id,
       exceed_action: (event, wait) => {
         send_private_message(event.user_id, [
-          mk_reply(event),
+          // mk_reply(event),
           mk_text(config.value.limit_reply.replace("{}", wait.toString())),
         ]);
       },

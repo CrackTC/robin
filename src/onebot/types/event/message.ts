@@ -57,4 +57,5 @@ export type GroupSender = {
   title: string;
 };
 
+export type Sender = GroupSender | PrivateSender;
 export type MessageEvent = PrivateMessageEvent | GroupMessageEvent;
