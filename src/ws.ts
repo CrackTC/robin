@@ -23,7 +23,7 @@ export const setup_ws_event = () => {
   });
   WS_EVENT.addEventListener("message", on_message);
   WS_EVENT.addEventListener("error", (e) => {
-    error(`event ws error: ${e}`);
+    error("event ws error:", e);
   });
   WS_EVENT.addEventListener("close", async () => {
     error("event ws closed");
@@ -40,7 +40,7 @@ export const setup_ws_api = () => {
     log(`api ws ${api_url} connected`);
   });
   WS_API.addEventListener("error", (e) => {
-    error(`api ws error: ${e}`);
+    error("api ws error:", e);
   });
   WS_API.addEventListener("close", async () => {
     error("api ws closed");
