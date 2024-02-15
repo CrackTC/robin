@@ -153,9 +153,10 @@ const ws_api_call = async <TParams>(
       if (response.status !== "failed") return response;
 
       warn(`ws api call to ${endpoint} failed: ${response}`);
+      warn(`retry in ${retry_interval} seconds`);
+      await sleep(retry_interval);
     } catch (e) {
       warn(`ws api call to ${endpoint} failed: ${e}`);
-    } finally {
       warn(`retry in ${retry_interval} seconds`);
       await sleep(retry_interval);
     }
