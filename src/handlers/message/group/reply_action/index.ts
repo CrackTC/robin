@@ -1,8 +1,5 @@
 import { get_msg } from "../../../../onebot/cqhttp.ts";
-import {
-  mk_text,
-  send_group_message,
-} from "../../../../onebot/cqhttp.ts";
+import { mk_text, send_group_message } from "../../../../onebot/cqhttp.ts";
 import { GroupMessageEvent } from "../../../../onebot/types/event/message.ts";
 import { Message } from "../../../../onebot/types/message.ts";
 import { GroupEventHandler } from "../types.ts";
@@ -29,7 +26,7 @@ const handle_func = async (event: GroupMessageEvent) => {
   const text = get_text(event.message);
   if (!text.startsWith("/")) return;
 
-  const parts = text.slice(1).split(" ", 2);
+  const parts = text.slice(1).split(" ");
   if (parts.length == 0) return;
 
   const reply_id = get_reply_id(event.message);
@@ -53,7 +50,7 @@ const handle_func = async (event: GroupMessageEvent) => {
   const message: Message = [
     mk_text(
       `${source_name} ${parts[0]} ${target_name}${
-        parts[1] ? " " + parts[1] : ""
+        parts.length > 1 ? " " + parts.slice(1).join(" ") : ""
       }`,
     ),
   ];
