@@ -39,7 +39,7 @@ const handle_func = async (event: GroupMessageEvent) => {
     error("failed to get message");
     return;
   }
-  const info = await get_group_member_info(event.group_id, msg.sender.user_id);
+  const info = await get_group_member_info(event.group_id, msg.sender.user_id, true);
   if (!info) {
     error("failed to get member info");
     return;
