@@ -5,5 +5,5 @@ COPY ./src/requirements.txt /app/requirements.txt
 WORKDIR /app
 RUN python3 -m pip install -r ./requirements.txt
 COPY ./src /app
-RUN deno cache main.ts
+RUN deno cache main.ts && deno cache handlers/*/*/*/index.ts
 CMD [ "run", "--allow-all", "main.ts" ]
