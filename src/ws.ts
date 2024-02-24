@@ -18,15 +18,17 @@ export const setup_ws_event = () => {
   const event_url = `${get_config().ws_addr}/event`;
 
   WS_EVENT = new WebSocket(event_url);
-  WS_EVENT.addEventListener("open", () => {
+  WS_EVENT.addEventListener("open", function () {
     log(`event ws ${event_url} connected`);
+    if (WS_EVENT !== this) WS_EVENT.close();
   });
   WS_EVENT.addEventListener("message", on_message);
   WS_EVENT.addEventListener("error", (e) => {
     error("event ws error:", e);
   });
-  WS_EVENT.addEventListener("close", async () => {
+  WS_EVENT.addEventListener("close", async function () {
     error("event ws closed");
+    if (WS_EVENT !== this) return;
     await sleep(get_config().retry_interval);
     setup_ws_event();
   });
