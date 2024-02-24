@@ -77,9 +77,7 @@ const get_description = (group_id: number) => {
 
 const handle_func = (event: GroupMessageEvent) => {
   const group_id = event.group_id;
-  const name = event.sender.card != null
-    ? get_safe_card(event.sender.card)
-    : event.sender.nickname;
+  const name = get_safe_card(event.sender.card) ?? event.sender.nickname;
   if (typeof event.message !== "string") {
     if (
       event.message[0] &&

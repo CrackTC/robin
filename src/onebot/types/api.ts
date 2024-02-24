@@ -13,7 +13,7 @@ export type GetGroupMemberInfoResponseData = {
   group_id: number;
   user_id: number;
   nickname: string;
-  card: string | undefined;
+  card: string | null;
   sex: "male" | "female" | "unknown";
   age: number;
   area: string;
