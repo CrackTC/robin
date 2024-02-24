@@ -2,7 +2,7 @@ import {
   is_group_message_event,
   is_heartbeat_event,
   is_private_message_event,
-} from "../onebot/cqhttp.ts";
+} from "../onebot/index.ts";
 import { Event } from "../onebot/types/event/common.ts";
 import { log } from "../utils.ts";
 import {

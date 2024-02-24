@@ -1,4 +1,4 @@
-import { is_heartbeat_event } from "../../../../onebot/cqhttp.ts";
+import { is_heartbeat_event } from "../../../../onebot/index.ts";
 import { Event } from "../../../../onebot/types/event/common.ts";
 import { HeartbeatEvent } from "../../../../onebot/types/event/meta.ts";
 import { heartbeat_start } from "../../../../utils.ts";

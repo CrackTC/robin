@@ -13,7 +13,7 @@ import {
   mk_reply,
   mk_text,
   send_group_message,
-} from "../../../../onebot/cqhttp.ts";
+} from "../../../../onebot/index.ts";
 import { GroupMessageEvent } from "../../../../onebot/types/event/message.ts";
 import { Message } from "../../../../onebot/types/message.ts";
 import { error, log, spawn_get_output } from "../../../../utils.ts";

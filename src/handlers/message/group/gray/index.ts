@@ -1,5 +1,8 @@
-import { get_msg, mk_image } from "../../../../onebot/cqhttp.ts";
-import { send_group_message } from "../../../../onebot/cqhttp.ts";
+import {
+  get_msg,
+  mk_image,
+  send_group_message,
+} from "../../../../onebot/index.ts";
 import { GroupMessageEvent } from "../../../../onebot/types/event/message.ts";
 import { Message } from "../../../../onebot/types/message.ts";
 import { GroupEventHandler } from "../types.ts";

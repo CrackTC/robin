@@ -3,7 +3,7 @@ import {
   // mk_reply,
   mk_text,
   send_private_message,
-} from "../../../../onebot/cqhttp.ts";
+} from "../../../../onebot/index.ts";
 import { PrivateMessageEvent } from "../../../../onebot/types/event/message.ts";
 import { error } from "../../../../utils.ts";
 import { rate_limit, task_queue, wrap } from "../../../../wrappers.ts";

@@ -1,10 +1,14 @@
-import { get_msg } from "../../../../onebot/cqhttp.ts";
-import { mk_text, send_group_message } from "../../../../onebot/cqhttp.ts";
+import {
+  get_group_member_info,
+  get_msg,
+  get_safe_card,
+  mk_text,
+  send_group_message,
+} from "../../../../onebot/index.ts";
 import { GroupMessageEvent } from "../../../../onebot/types/event/message.ts";
 import { Message } from "../../../../onebot/types/message.ts";
 import { GroupEventHandler } from "../types.ts";
 import { error } from "../../../../utils.ts";
-import { get_group_member_info } from "../../../../onebot/cqhttp.ts";
 
 const reply_regex = /\[CQ:reply,id=(\d+)\]/;
 
@@ -39,13 +43,17 @@ const handle_func = async (event: GroupMessageEvent) => {
     error("failed to get message");
     return;
   }
-  const info = await get_group_member_info(event.group_id, msg.sender.user_id, true);
+  const info = await get_group_member_info(
+    event.group_id,
+    msg.sender.user_id,
+    true,
+  );
   if (!info) {
     error("failed to get member info");
     return;
   }
 
-  const target_name = info.card ?? info.nickname;
+  const target_name = get_safe_card(info.card) ?? info.nickname;
 
   const message: Message = [
     mk_text(
