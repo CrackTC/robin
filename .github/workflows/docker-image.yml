@@ -24,7 +24,7 @@ jobs:
           git diff --name-only ${{ github.event.before }} ${{ github.sha }} > files.txt
           while IFS= read -r file
           do
-            if [[ $file == "src/"* || $file == "fonts/"* || $file == ".github/"* ]]; then
+            if [[ $file == "src/"* || $file == "fonts/"* || $file == ".github/"* || $file == "Dockerfile" ]]; then
               echo "run_job=true" >> $GITHUB_OUTPUT
               break
             fi
