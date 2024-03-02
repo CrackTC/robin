@@ -12,7 +12,13 @@ import {
 import { HeartbeatEvent } from "./types/event/meta.ts";
 import {
   AtSegment,
+  CustomNodeSegment,
   ImageSegment,
+  KeyboardButton,
+  KeyboardButtonStyle,
+  KeyboardSegment,
+  LongMsgSegment,
+  MarkdownSegment,
   Message,
   ReplySegment,
   TextSegment,
@@ -22,10 +28,13 @@ import {
   GetGroupMemberListResponseData,
   GetMsgResponseData,
   HttpApiResponse,
-  SendGroupMessageResponseData,
-  SendPrivateMessageResponseData,
+  SendForwardMsgResponseData,
+  SendGroupMsgResponseData,
+  SendPrivateMsgResponseData,
   WsApiResponse,
 } from "./types/api.ts";
+import { KeyboardActionType } from "./types/message.ts";
+import { KeyboardPermissionType } from "./types/message.ts";
 
 export const mk_text = (text: string): TextSegment => ({
   type: "text",
@@ -56,6 +65,64 @@ export const mk_reply = (event: MessageEvent): ReplySegment => ({
     id: `${event.message_id}`,
   },
 });
+
+export const mk_markdown = (text: string): MarkdownSegment => ({
+  type: "markdown",
+  data: {
+    content: `{"content":${JSON.stringify(text)}}`,
+  },
+});
+
+export const mk_button = (label: string, data: string): KeyboardButton => ({
+  render_data: {
+    label,
+    visited_label: label,
+    style: KeyboardButtonStyle.Blue,
+  },
+  action: {
+    type: KeyboardActionType.Command,
+    data,
+    permission: {
+      type: KeyboardPermissionType.Everyone,
+    },
+    unsupport_tips: "不支持喵",
+  },
+});
+
+export const mk_keyboard = (rows: KeyboardButton[][]): KeyboardSegment => ({
+  type: "keyboard",
+  data: {
+    content: rows.map((buttons) => ({ buttons })),
+  },
+});
+
+export const mk_custom_node = (
+  user_id: number,
+  nickname: string,
+  content: Message,
+): CustomNodeSegment => ({
+  type: "node",
+  data: {
+    user_id: `${user_id}`,
+    nickname,
+    content,
+  },
+});
+
+export const mk_long_message = async (
+  markdown: MarkdownSegment,
+  keyboard: KeyboardSegment,
+): Promise<LongMsgSegment | undefined> => {
+  const node = mk_custom_node(0, "bot", [markdown, keyboard]);
+  const res_id = await send_forward_msg([node]);
+  if (!res_id) return;
+  return {
+    type: "longmsg",
+    data: {
+      id: res_id,
+    },
+  };
+};
 
 export const is_heartbeat_event = (event: Event): event is HeartbeatEvent =>
   event.post_type == "meta_event" && event.meta_event_type == "heartbeat";
@@ -186,7 +253,7 @@ export const send_group_message = async (
     group_id,
     message,
     auto_escape: !parse_cq,
-  })) as SendGroupMessageResponseData;
+  })) as SendGroupMsgResponseData;
 
 export const send_private_message = async (
   user_id: number,
@@ -197,7 +264,7 @@ export const send_private_message = async (
     user_id,
     message,
     auto_escape: !parse_cq,
-  })) as SendPrivateMessageResponseData;
+  })) as SendPrivateMsgResponseData;
 
 export const get_group_member_list = async (
   group_id: number,
@@ -220,3 +287,10 @@ export const get_group_member_info = async (
 export const get_msg = async (
   message_id: number,
 ) => (await api_call("get_msg", { message_id })) as GetMsgResponseData;
+
+export const send_forward_msg = async (
+  messages: CustomNodeSegment[],
+) =>
+  (await api_call("send_forward_msg", {
+    messages,
+  })) as SendForwardMsgResponseData;

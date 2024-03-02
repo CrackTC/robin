@@ -145,7 +145,7 @@ export type ReplySegment = {
 export type ForwardSegment = {
   type: "forward";
   data: {
-    id: `${number}`;
+    id: string;
   };
 };
 
@@ -179,6 +179,70 @@ export type JsonSegment = {
   };
 };
 
+export type MarkdownSegment = {
+  type: "markdown";
+  data: {
+    content: string;
+  };
+};
+
+export enum KeyboardButtonStyle {
+  Gray = 0,
+  Blue = 1,
+}
+
+export enum KeyboardActionType {
+  Jump = 0,
+  Callback = 1,
+  Command = 2,
+}
+
+export enum KeyboardPermissionType {
+  SpecifyUser = 0,
+  Admin = 1,
+  Everyone = 2,
+  SpecifyRole = 3,
+}
+
+export type KeyboardButton = {
+  id?: string;
+  render_data: {
+    label: string;
+    visited_label: string;
+    style: KeyboardButtonStyle;
+  };
+  action: {
+    type: KeyboardActionType;
+    permission: {
+      type: KeyboardPermissionType;
+      specify_role_ids?: string[];
+      specify_user_ids?: string[];
+    };
+    unsupport_tips: string;
+    data: string;
+    reply?: boolean;
+    enter?: boolean;
+  };
+};
+
+export type KeyboardRow = {
+  buttons: KeyboardButton[];
+};
+
+export type KeyboardSegment = {
+  type: "keyboard";
+  data: {
+    content: KeyboardRow[];
+  };
+};
+
+export type LongMsgSegment = {
+  type: "longmsg";
+  data: {
+    id: string;
+  };
+};
+
 export type Segment =
   | TextSegment
   | FaceSegment
@@ -201,6 +265,9 @@ export type Segment =
   | NodeSegment
   | CustomNodeSegment
   | XmlSegment
-  | JsonSegment;
+  | JsonSegment
+  | KeyboardSegment
+  | MarkdownSegment
+  | LongMsgSegment;
 
 export type Message = Segment[] | string;

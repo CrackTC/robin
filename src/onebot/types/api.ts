@@ -1,11 +1,11 @@
 import { Sender } from "./event/message.ts";
 import { Message } from "./message.ts";
 
-export type SendPrivateMessageResponseData = {
+export type SendPrivateMsgResponseData = {
   message_id: number;
 };
 
-export type SendGroupMessageResponseData = {
+export type SendGroupMsgResponseData = {
   message_id: number;
 };
 
@@ -38,12 +38,15 @@ export type GetMsgResponseData = {
   message: Message;
 };
 
+export type SendForwardMsgResponseData = string;
+
 export type ResponseData =
-  | SendPrivateMessageResponseData
-  | SendGroupMessageResponseData
+  | SendPrivateMsgResponseData
+  | SendGroupMsgResponseData
   | GetGroupMemberInfoResponseData
   | GetGroupMemberListResponseData
-  | GetMsgResponseData;
+  | GetMsgResponseData
+  | SendForwardMsgResponseData;
 
 export type HttpApiResponse = {
   "status": "ok" | "async" | "failed";
