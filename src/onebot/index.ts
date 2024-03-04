@@ -1,9 +1,9 @@
 import { encode } from "https://deno.land/std@0.202.0/encoding/base64.ts";
 import { sleep } from "https://deno.land/x/sleep@v1.2.1/mod.ts";
-import { get_config } from "../config.ts";
-import { error, log, warn } from "../utils.ts";
-import { WS_API } from "../ws.ts";
-import { Event } from "./types/event/common.ts";
+import { get_config } from "/config.ts";
+import { error, log, warn } from "/utils.ts";
+import { WS_API } from "/ws.ts";
+import { Event } from "/onebot/types/event/common.ts";
 import {
   GroupMessageEvent,
   MessageEvent,

@@ -1,5 +1,5 @@
-import { Sender } from "./event/message.ts";
-import { Message } from "./message.ts";
+import { Sender } from "/onebot/types/event/message.ts";
+import { Message } from "/onebot/types/message.ts";
 
 export type SendPrivateMsgResponseData = {
   message_id: number;

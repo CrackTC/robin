@@ -1,14 +1,17 @@
-import db from "../../../../db.ts";
+import db from "/db.ts";
 import {
   // mk_reply,
   mk_text,
   send_private_message,
-} from "../../../../onebot/index.ts";
-import { PrivateMessageEvent } from "../../../../onebot/types/event/message.ts";
-import { error } from "../../../../utils.ts";
-import { rate_limit, task_queue, wrap } from "../../../../wrappers.ts";
-import { HandlerConfig } from "../../../common.ts";
-import { PrivateEventHandleFunc, PrivateEventHandler } from "../types.ts";
+} from "/onebot/index.ts";
+import { PrivateMessageEvent } from "/onebot/types/event/message.ts";
+import { error } from "/utils.ts";
+import { rate_limit, task_queue, wrap } from "/wrappers.ts";
+import { HandlerConfig } from "/handlers/common.ts";
+import {
+  PrivateEventHandleFunc,
+  PrivateEventHandler,
+} from "/handlers/message/private/types.ts";
 import { ChatBotClient, ChatBotMessage } from "./common.ts";
 import { GeminiChatBotClient } from "./gemini.ts";
 import { OpenAIChatBotClient } from "./openai.ts";

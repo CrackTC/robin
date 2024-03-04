@@ -1,5 +1,5 @@
-import { load_api } from "../api/api.ts";
-import { load_handlers } from "../handlers/index.ts";
+import { load_api } from "/api/index.ts";
+import { load_handlers } from "/handlers/index.ts";
 
 const mock_config = {
   self_id: 123456789,

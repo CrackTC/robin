@@ -5,10 +5,10 @@ import {
   mk_reply,
   mk_text,
   send_group_message,
-} from "../../../../onebot/index.ts";
-import { GroupMessageEvent } from "../../../../onebot/types/event/message.ts";
-import { HandlerConfig } from "../../../common.ts";
-import { GroupEventHandler } from "../types.ts";
+} from "/onebot/index.ts";
+import { GroupMessageEvent } from "/onebot/types/event/message.ts";
+import { HandlerConfig } from "/handlers/common.ts";
+import { GroupEventHandler } from "/handlers/message/group/types.ts";
 
 const config = new HandlerConfig("rand_reply", {
   texts: [] as string[],

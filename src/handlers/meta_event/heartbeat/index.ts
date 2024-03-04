@@ -1,8 +1,8 @@
-import { HeartbeatEvent } from "../../../onebot/types/event/meta.ts";
-import { log } from "../../../utils.ts";
-import { load_handlers_from_url } from "../../common.ts";
-import { event_handlers } from "../../index.ts";
-import { EventHandler } from "../../types.ts";
+import { HeartbeatEvent } from "/onebot/types/event/meta.ts";
+import { log } from "/utils.ts";
+import { load_handlers_from_url } from "/handlers/common.ts";
+import { event_handlers } from "/handlers/index.ts";
+import { EventHandler } from "/handlers/types.ts";
 import { HeartbeatEventHandler } from "./types.ts";
 
 const is_heartbeat_event_handler = (

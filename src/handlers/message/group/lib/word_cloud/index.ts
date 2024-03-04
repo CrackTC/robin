@@ -1,12 +1,12 @@
 import Cron from "https://deno.land/x/croner@8.0.0/src/croner.js";
-import db from "../../../../db.ts";
-import { mk_image, send_group_message } from "../../../../onebot/index.ts";
-import { GroupMessageEvent } from "../../../../onebot/types/event/message.ts";
-import { backup, error } from "../../../../utils.ts";
-import { task_queue, wrap } from "../../../../wrappers.ts";
-import { HandlerConfig } from "../../../common.ts";
-import { get_group_event_handler } from "../index.ts";
-import { GroupEventHandler } from "../types.ts";
+import db from "/db.ts";
+import { mk_image, send_group_message } from "/onebot/index.ts";
+import { GroupMessageEvent } from "/onebot/types/event/message.ts";
+import { backup, error } from "/utils.ts";
+import { task_queue, wrap } from "/wrappers.ts";
+import { HandlerConfig } from "/handlers/common.ts";
+import { get_group_event_handler } from "/handlers/message/group/index.ts";
+import { GroupEventHandler } from "/handlers/message/group/types.ts";
 import { encode } from "https://deno.land/std@0.202.0/encoding/base64.ts";
 
 const NAME = "word_cloud";

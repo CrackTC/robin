@@ -1,9 +1,9 @@
-import { get_config } from "../../../config.ts";
-import { GroupMessageEvent } from "../../../onebot/types/event/message.ts";
-import { error, log } from "../../../utils.ts";
-import { load_handlers_from_url } from "../../common.ts";
-import { event_handlers } from "../../index.ts";
-import { EventHandler } from "../../types.ts";
+import { get_config } from "/config.ts";
+import { GroupMessageEvent } from "/onebot/types/event/message.ts";
+import { error, log } from "/utils.ts";
+import { load_handlers_from_url } from "/handlers/common.ts";
+import { event_handlers } from "/handlers/index.ts";
+import { EventHandler } from "/handlers/types.ts";
 import { GroupEventHandler } from "./types.ts";
 
 const is_group_event_handler = (

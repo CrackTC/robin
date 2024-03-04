@@ -1,9 +1,9 @@
-import { is_heartbeat_event } from "../../../../onebot/index.ts";
-import { Event } from "../../../../onebot/types/event/common.ts";
-import { HeartbeatEvent } from "../../../../onebot/types/event/meta.ts";
-import { heartbeat_start } from "../../../../utils.ts";
-import { setup_ws_api, setup_ws_event, WS_EVENT } from "../../../../ws.ts";
-import { HeartbeatEventHandler } from "../types.ts";
+import { is_heartbeat_event } from "/onebot/index.ts";
+import { Event } from "/onebot/types/event/common.ts";
+import { HeartbeatEvent } from "/onebot/types/event/meta.ts";
+import { heartbeat_start } from "/utils.ts";
+import { setup_ws_api, setup_ws_event, WS_EVENT } from "/ws.ts";
+import { HeartbeatEventHandler } from "/handlers/meta_event/heartbeat/types.ts";
 
 const handle_func = (event: HeartbeatEvent) => {
   const beat = heartbeat_start(event.interval, () => {

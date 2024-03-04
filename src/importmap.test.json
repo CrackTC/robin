@@ -1,0 +1,8 @@
+{
+  "imports": {
+    "/": "./",
+    "./": "./",
+    "/db.ts": "./test/mocks/db.ts",
+    "https://deno.land/x/croner@8.0.0/src/croner.js": "./test/mocks/croner.ts"
+  }
+}

@@ -1,6 +1,6 @@
-import { Config } from "../../../config.ts";
-import { GroupMessageEvent } from "../../../onebot/types/event/message.ts";
-import { EventHandler } from "../../types.ts";
+import { Config } from "/config.ts";
+import { GroupMessageEvent } from "/onebot/types/event/message.ts";
+import { EventHandler } from "/handlers/types.ts";
 
 export type GroupEventHandleFunc = (
   event: GroupMessageEvent,

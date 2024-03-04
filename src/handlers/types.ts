@@ -1,4 +1,4 @@
-import { Config } from "../config.ts";
+import { Config } from "/config.ts";
 
 export class EventHandler {
   name: string;

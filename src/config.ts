@@ -1,6 +1,6 @@
 import { debounce } from "https://deno.land/std@0.210.0/async/debounce.ts";
 import { EventEmitter } from "https://deno.land/x/eventemitter@1.2.4/mod.ts";
-import { assert, error, log } from "./utils.ts";
+import { assert, error, log } from "/utils.ts";
 
 const FALLBACK_TOKEN = crypto.randomUUID();
 

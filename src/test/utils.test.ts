@@ -11,7 +11,7 @@ import {
   is_decimal_number,
   spawn_get_output,
   spawn_set_input,
-} from "../utils.ts";
+} from "/utils.ts";
 
 // Test for assert function
 Deno.test("assert should throw an error if the condition is false", () => {

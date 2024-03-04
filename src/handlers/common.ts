@@ -1,7 +1,7 @@
-import { Config, config_events, get_config } from "../config.ts";
-import { import_dir, log } from "../utils.ts";
-import { event_handlers } from "./index.ts";
-import { EventHandler } from "./types.ts";
+import { Config, config_events, get_config } from "/config.ts";
+import { import_dir, log } from "/utils.ts";
+import { event_handlers } from "/handlers/index.ts";
+import { EventHandler } from "/handlers/types.ts";
 
 export const load_handlers_from_url = async (category: string, url: string) => {
   for await (const { module } of import_dir(url)) {

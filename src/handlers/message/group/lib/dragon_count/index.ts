@@ -1,18 +1,13 @@
 import Cron from "https://deno.land/x/croner@8.0.0/src/croner.js";
-import db from "../../../../db.ts";
-import {
-  get_group_member_list,
-  get_safe_card,
-  mk_text,
-  send_group_message,
-} from "../../../../onebot/index.ts";
-import { GroupMessageEvent } from "../../../../onebot/types/event/message.ts";
-import { backup, error } from "../../../../utils.ts";
-import { HandlerConfig } from "../../../common.ts";
-import { get_group_event_handler } from "../index.ts";
-import { GroupEventHandler } from "../types.ts";
+import db from "/db.ts";
+import { get_safe_card, mk_text, send_group_message } from "/onebot/index.ts";
+import { GroupMessageEvent } from "/onebot/types/event/message.ts";
+import { backup, error } from "/utils.ts";
+import { HandlerConfig } from "/handlers/common.ts";
+import { get_group_event_handler } from "/handlers/message/group/index.ts";
+import { GroupEventHandler } from "/handlers/message/group/types.ts";
 
-const NAME = "user_rank";
+const NAME = "dragon_count";
 const config = new HandlerConfig(NAME, {
   cron: "0 0 0 * * *",
 });
@@ -20,22 +15,22 @@ const config = new HandlerConfig(NAME, {
 db.execute(`
   CREATE TABLE IF NOT EXISTS ${NAME} (
     group_id INTEGER NOT NULL,
-    id INTEGER NOT NULL
+    nickname TEXT NOT NULL
   )
 `);
 
-const insert = (group_id: number, id: number) =>
+const insert = (group_id: number, nickname: string) =>
   db.query(
-    `INSERT INTO ${NAME} (group_id, id) VALUES (?, ?)`,
-    [group_id, id],
+    `INSERT INTO ${NAME} (group_id, nickname) VALUES (?, ?)`,
+    [group_id, nickname],
   );
 
 const get_top_n = (group_id: number, n: number) =>
-  db.query<[number, number]>(
+  db.query<[string, number]>(
     `
-    SELECT id, COUNT(*) AS count
+    SELECT nickname, COUNT(*) AS count
     FROM ${NAME}
-    GROUP BY id
+    GROUP BY nickname
     HAVING group_id = ?
     ORDER BY count DESC
     LIMIT ?`,
@@ -44,7 +39,7 @@ const get_top_n = (group_id: number, n: number) =>
 
 const get_people_count = (group_id: number) =>
   db.query<[number]>(
-    `SELECT COUNT(DISTINCT id) FROM ${NAME} WHERE group_id = ?`,
+    `SELECT COUNT(DISTINCT nickname) FROM ${NAME} WHERE group_id = ?`,
     [group_id],
   )[0][0];
 
@@ -62,50 +57,38 @@ const get_description_text = (
   messages: number,
   rank: [string, number][],
 ) =>
-  `本群 ${peoples} 位朋友共产生 ${messages} 条发言\n` +
-  "活跃用户排行榜" +
-  rank.map(([name, count]) => `\n${name} 贡献: ${count}`);
+  `${peoples}个好人送了${messages}条龙\n` +
+  "吃撑了>_<" +
+  rank.map(([name, count]) => `\n${name}: ${count}🐉`);
 
-const get_description = async (group_id: number) => {
+const get_description = (group_id: number) => {
   const people_count = get_people_count(group_id);
-  if (people_count == 0) return "本群无人发言";
+  if (people_count == 0) return null;
 
   const msg_count = get_msg_count(group_id);
-  const rank = get_top_n(group_id, 10);
+  const rank = get_top_n(group_id, 3);
 
-  const members = await get_group_member_list(group_id);
-  if (!members) {
-    error(`get group member list for ${group_id} failed`);
-    return;
-  }
-
-  const dict: Record<number, string> = {};
-  members.forEach((member) => {
-    dict[member.user_id] = get_safe_card(member.card) ?? member.nickname;
-  });
-
-  return get_description_text(
-    people_count,
-    msg_count,
-    rank.map(([id, count]) => [dict[id], count]),
-  );
+  return get_description_text(people_count, msg_count, rank);
 };
 
 const handle_func = (event: GroupMessageEvent) => {
   const group_id = event.group_id;
-  const id = event.sender.user_id;
-  insert(group_id, id);
+  const name = get_safe_card(event.sender.card) ?? event.sender.nickname;
+  if (typeof event.message !== "string") {
+    if (
+      event.message[0] &&
+      event.message[0].type === "text" &&
+      event.message[0].data.text === "[该消息类型不支持查看，请使用QQ最新版本]"
+    ) {
+      insert(group_id, name);
+    }
+  }
 };
 
 const send_description = async (group_id: number) => {
-  const desc = await get_description(group_id);
+  const desc = get_description(group_id);
+  if (!desc) return;
   clear_group(group_id);
-
-  if (!desc) {
-    error(`get description for ${group_id} failed`);
-    return;
-  }
-
   const success = await send_group_message(group_id, [mk_text(desc)]);
   if (!success) {
     error("send description failed");

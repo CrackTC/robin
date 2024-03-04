@@ -1,8 +1,7 @@
-import { import_dir, log } from "../utils.ts";
-import { add_cors, json_header, wrap } from "../wrappers.ts";
-import { fail } from "./common.ts";
-
-export type ApiHandler = (args: Record<string, string>) => Response;
+import { import_dir, log } from "/utils.ts";
+import { add_cors, json_header, wrap } from "/wrappers.ts";
+import { ApiHandler } from "/api/types.ts";
+import { fail } from "/api/common.ts";
 
 function mux(path: string[]) {
   const name = path.shift();

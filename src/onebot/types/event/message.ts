@@ -1,4 +1,4 @@
-import { Message } from "../message.ts";
+import { Message } from "/onebot/types/message.ts";
 
 export type PrivateMessageEvent = {
   time: number;

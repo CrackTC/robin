@@ -1,12 +1,12 @@
-import { get_config } from "../../config.ts";
+import { get_config } from "/config.ts";
 import {
   add_group_to_handler,
   remove_group_from_handler,
-} from "../../handlers/message/group/index.ts";
-import { is_decimal_number } from "../../utils.ts";
-import { require_args, verify_token, wrap } from "../../wrappers.ts";
-import { ApiHandler } from "../api.ts";
-import { fail, ok } from "../common.ts";
+} from "/handlers/message/group/index.ts";
+import { is_decimal_number } from "/utils.ts";
+import { require_args, verify_token, wrap } from "/wrappers.ts";
+import { ApiHandler } from "/api/types.ts";
+import { fail, ok } from "/api/common.ts";
 
 const all = () => ok(get_config().groups);
 

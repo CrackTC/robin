@@ -1,6 +1,6 @@
 import { assertEquals } from "https://deno.land/std@0.92.0/testing/asserts.ts";
 import { sleep } from "https://deno.land/x/sleep@v1.2.1/sleep.ts";
-import { rate_limit, task_queue } from "../wrappers.ts";
+import { rate_limit, task_queue } from "/wrappers.ts";
 
 Deno.test("task_queue should execute the handler function with the provided argument", async () => {
   let executed = false;

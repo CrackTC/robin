@@ -1,13 +1,9 @@
-import {
-  get_msg,
-  mk_image,
-  send_group_message,
-} from "../../../../onebot/index.ts";
-import { GroupMessageEvent } from "../../../../onebot/types/event/message.ts";
-import { Message } from "../../../../onebot/types/message.ts";
-import { GroupEventHandler } from "../types.ts";
-import { error } from "../../../../utils.ts";
-import { HandlerConfig } from "../../../common.ts";
+import { get_msg, mk_image, send_group_message } from "/onebot/index.ts";
+import { GroupMessageEvent } from "/onebot/types/event/message.ts";
+import { Message } from "/onebot/types/message.ts";
+import { GroupEventHandler } from "/handlers/message/group/types.ts";
+import { error } from "/utils.ts";
+import { HandlerConfig } from "/handlers/common.ts";
 
 const NAME = "gray";
 const reply_regex = /\[CQ:reply,id=(\d+)\]/;

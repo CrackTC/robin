@@ -1,0 +1,9 @@
+{
+  "tasks": {
+    "test": "deno test --allow-all --import-map=importmap.test.json"
+  },
+  "imports": {
+    "/": "./",
+    "./": "./"
+  }
+}

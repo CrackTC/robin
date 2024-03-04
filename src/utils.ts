@@ -119,12 +119,12 @@ export const heartbeat_start = (interval: number, die: () => void) => {
 };
 
 export const import_dir = async function* (url: string) {
-  const dirname = path.dirname(path.fromFileUrl(url));
+  const dirname = path.join(path.dirname(path.fromFileUrl(url)), "lib");
   for (const { name, isDirectory } of Deno.readDirSync(dirname)) {
     if (isDirectory) {
       yield {
         name,
-        module: await import(`${dirname}/${name}/index.ts`),
+        module: await import(path.join(dirname, name, "index.ts")),
       };
     }
   }

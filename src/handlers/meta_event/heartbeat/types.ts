@@ -1,6 +1,6 @@
-import { Config } from "../../../config.ts";
-import { HeartbeatEvent } from "../../../onebot/types/event/meta.ts";
-import { EventHandler } from "../../types.ts";
+import { Config } from "/config.ts";
+import { HeartbeatEvent } from "/onebot/types/event/meta.ts";
+import { EventHandler } from "/handlers/types.ts";
 
 export type HeartbeatEventHandleFunc = (
   event: HeartbeatEvent,
