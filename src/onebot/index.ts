@@ -74,7 +74,7 @@ export const mk_markdown = (text: string): MarkdownSegment => ({
   },
 });
 
-export const mk_button = (label: string, data: string): KeyboardButton => ({
+export const mk_button = (label: string, data: string, reply?: boolean, enter?: boolean): KeyboardButton => ({
   render_data: {
     label,
     visited_label: label,
@@ -87,6 +87,8 @@ export const mk_button = (label: string, data: string): KeyboardButton => ({
       type: KeyboardPermissionType.Everyone,
     },
     unsupport_tips: "不支持喵",
+    reply,
+    enter
   },
 });
 
