@@ -5,3 +5,7 @@ services:
       - "3101:3101"
     volumes:
       - ./data:/app/data
+      - ./api:/app/api/lib
+      - ./group:/app/handlers/message/group/lib
+      - ./private:/app/handlers/message/private/lib
+      - ./heartbeat:/app/handlers/meta_event/heartbeat/lib
