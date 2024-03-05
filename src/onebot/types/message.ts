@@ -241,7 +241,9 @@ export type KeyboardRow = {
 export type KeyboardSegment = {
   type: "keyboard";
   data: {
-    content: KeyboardRow[];
+    content: {
+      rows: KeyboardRow[];
+    };
   };
 };
 

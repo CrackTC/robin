@@ -93,7 +93,9 @@ export const mk_button = (label: string, data: string): KeyboardButton => ({
 export const mk_keyboard = (rows: KeyboardButton[][]): KeyboardSegment => ({
   type: "keyboard",
   data: {
-    content: rows.map((buttons) => ({ buttons })),
+    content: {
+      rows: rows.map((buttons) => ({ buttons })),
+    },
   },
 });
 
