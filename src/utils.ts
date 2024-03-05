@@ -130,6 +130,8 @@ export const import_dir = async function* (url: string) {
       }
     }
   } catch (e) {
-    if (!(e instanceof Deno.errors.NotFound)) throw e;
+    if (!(e instanceof Deno.errors.NotFound)) {
+      throw e;
+    }
   }
 };
