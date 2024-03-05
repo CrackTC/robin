@@ -165,6 +165,15 @@ export type CustomNodeSegment = {
   };
 };
 
+export type LagrangeCustomNodeSegment = {
+  type: "node";
+  data: {
+    uin: `${number}`;
+    name: string;
+    content: Message;
+  };
+};
+
 export type XmlSegment = {
   type: "xml";
   data: {
@@ -260,6 +269,7 @@ export type Segment =
   | LocationSegment
   | MusicSegment
   | CustomMusicSegment
+  | LagrangeCustomNodeSegment
   | ReplySegment
   | ForwardSegment
   | NodeSegment

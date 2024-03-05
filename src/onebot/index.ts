@@ -8,21 +8,24 @@ import {
   GroupMessageEvent,
   MessageEvent,
   PrivateMessageEvent,
-} from "./types/event/message.ts";
-import { HeartbeatEvent } from "./types/event/meta.ts";
+} from "/onebot/types/event/message.ts";
+import { HeartbeatEvent } from "/onebot/types/event/meta.ts";
 import {
   AtSegment,
   CustomNodeSegment,
   ImageSegment,
+  KeyboardActionType,
   KeyboardButton,
   KeyboardButtonStyle,
+  KeyboardPermissionType,
   KeyboardSegment,
+  LagrangeCustomNodeSegment,
   LongMsgSegment,
   MarkdownSegment,
   Message,
   ReplySegment,
   TextSegment,
-} from "./types/message.ts";
+} from "/onebot/types/message.ts";
 import {
   GetGroupMemberInfoResponseData,
   GetGroupMemberListResponseData,
@@ -32,9 +35,7 @@ import {
   SendGroupMsgResponseData,
   SendPrivateMsgResponseData,
   WsApiResponse,
-} from "./types/api.ts";
-import { KeyboardActionType } from "./types/message.ts";
-import { KeyboardPermissionType } from "./types/message.ts";
+} from "/onebot/types/api.ts";
 
 export const mk_text = (text: string): TextSegment => ({
   type: "text",
@@ -109,11 +110,24 @@ export const mk_custom_node = (
   },
 });
 
+export const mk_lagrange_custom_node = (
+  uin: number,
+  name: string,
+  content: Message,
+): LagrangeCustomNodeSegment => ({
+  type: "node",
+  data: {
+    uin: `${uin}`,
+    name,
+    content,
+  },
+});
+
 export const mk_long_message = async (
   markdown: MarkdownSegment,
   keyboard: KeyboardSegment,
 ): Promise<LongMsgSegment | undefined> => {
-  const node = mk_custom_node(0, "bot", [markdown, keyboard]);
+  const node = mk_lagrange_custom_node(0, "bot", [markdown, keyboard]);
   const res_id = await send_forward_msg([node]);
   if (!res_id) return;
   return {
@@ -289,7 +303,7 @@ export const get_msg = async (
 ) => (await api_call("get_msg", { message_id })) as GetMsgResponseData;
 
 export const send_forward_msg = async (
-  messages: CustomNodeSegment[],
+  messages: LagrangeCustomNodeSegment[],
 ) =>
   (await api_call("send_forward_msg", {
     messages,
