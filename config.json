@@ -6,20 +6,11 @@
   "groups": [],
   "max_retry": 5,
   "retry_interval": 30,
+  "timeout": 10,
   "handlers": {
     "rand_reply": {
       "texts": [],
       "image_paths": []
-    },
-    "search_ill": {
-      "pixiv_refresh_token": "",
-      "openai_api_key": "",
-      "ill_input_match": [],
-      "rate_limit_per_hour": 10,
-      "model_tag": "gpt-4-1106-preview",
-      "model_ill": "gpt-4-vision-preview",
-      "reply_not_found": "再怎么找也找不到啦>_<",
-      "reply_limit": "说话太快啦～，再等{}秒吧"
     },
     "user_rank": {
       "cron": "0 0 0 * * *"
