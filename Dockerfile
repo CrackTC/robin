@@ -1,4 +1,4 @@
-FROM denoland/deno:alpine-1.41.1
+FROM denoland/deno:alpine-1.41.2
 EXPOSE 3101
 WORKDIR /app
 COPY ./src /app
