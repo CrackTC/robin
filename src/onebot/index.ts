@@ -74,12 +74,7 @@ export const mk_markdown = (text: string): MarkdownSegment => ({
   },
 });
 
-export const mk_button = (
-  label: string,
-  data: string,
-  reply?: boolean,
-  enter?: boolean,
-): KeyboardButton => ({
+export const mk_button = (label: string, data: string, reply?: boolean, enter?: boolean): KeyboardButton => ({
   render_data: {
     label,
     visited_label: label,
@@ -93,7 +88,7 @@ export const mk_button = (
     },
     unsupport_tips: "不支持喵",
     reply,
-    enter,
+    enter
   },
 });
 
@@ -216,7 +211,7 @@ const http_api_call = async <TParams>(
 };
 
 const ws_fetch = (ws: WebSocket, msg: string, echo: string) =>
-  new Promise<WsApiResponse | null>((resolve) => {
+  new Promise<WsApiResponse>((resolve) => {
     const listener = (msg: { data: string }) => {
       const data = JSON.parse(msg.data);
       if (data.echo == echo) {
@@ -226,10 +221,6 @@ const ws_fetch = (ws: WebSocket, msg: string, echo: string) =>
     };
     ws.addEventListener("message", listener);
     ws.send(msg);
-    sleep(get_config().timeout).then(() => {
-      ws.removeEventListener("message", listener);
-      resolve(null);
-    });
   });
 
 const ws_api_call = async <TParams>(
@@ -239,13 +230,13 @@ const ws_api_call = async <TParams>(
 ): Promise<WsApiResponse> => {
   const { retry_interval, max_retry } = get_config();
 
-  let response: WsApiResponse | null;
+  let response: WsApiResponse;
   for (let i = 0; i < max_retry + 1; i++) {
     try {
       const echo = crypto.randomUUID();
       const msg = get_api_body(endpoint, params, echo);
       response = await ws_fetch(ws, msg, echo);
-      if (response && response.status !== "failed") return response;
+      if (response.status !== "failed") return response;
 
       warn(`ws api call to ${endpoint} failed: ${response}`);
       warn(`retry in ${retry_interval} seconds`);
