@@ -2,7 +2,7 @@ import { encode } from "https://deno.land/std@0.202.0/encoding/base64.ts";
 import { sleep } from "https://deno.land/x/sleep@v1.2.1/mod.ts";
 import { get_config } from "/config.ts";
 import { error, log, warn } from "/utils.ts";
-import { WS_API } from "/ws.ts";
+import { setup_ws_api, WS_API } from "/ws.ts";
 import { Event } from "/onebot/types/event/common.ts";
 import {
   GroupMessageEvent,
@@ -215,19 +215,19 @@ const http_api_call = async <TParams>(
   return response!;
 };
 
-const ws_fetch = (ws: WebSocket, msg: string, echo: string) =>
+const ws_fetch = (msg: string, echo: string) =>
   new Promise<WsApiResponse | null>((resolve) => {
     const listener = (msg: { data: string }) => {
       const data = JSON.parse(msg.data);
       if (data.echo == echo) {
-        ws.removeEventListener("message", listener);
+        WS_API.removeEventListener("message", listener);
         resolve(data);
       }
     };
-    ws.addEventListener("message", listener);
-    ws.send(msg);
+    WS_API.addEventListener("message", listener);
+    WS_API.send(msg);
     sleep(get_config().timeout).then(() => {
-      ws.removeEventListener("message", listener);
+      WS_API.removeEventListener("message", listener);
       resolve(null);
     });
   });
@@ -235,7 +235,6 @@ const ws_fetch = (ws: WebSocket, msg: string, echo: string) =>
 const ws_api_call = async <TParams>(
   endpoint: string,
   params: TParams,
-  ws: WebSocket,
 ): Promise<WsApiResponse> => {
   const { retry_interval, max_retry } = get_config();
 
@@ -244,15 +243,17 @@ const ws_api_call = async <TParams>(
     try {
       const echo = crypto.randomUUID();
       const msg = get_api_body(endpoint, params, echo);
-      response = await ws_fetch(ws, msg, echo);
+      response = await ws_fetch(msg, echo);
       if (response && response.status !== "failed") return response;
 
-      warn(`ws api call to ${endpoint} failed: ${response}`);
+      warn(`ws api call to ${endpoint} failed:`, response);
       warn(`retry in ${retry_interval} seconds`);
+      if (response === null) setup_ws_api();
       await sleep(retry_interval);
     } catch (e) {
-      warn(`ws api call to ${endpoint} failed: ${e}`);
+      warn(`ws api call to ${endpoint} failed:`, e);
       warn(`retry in ${retry_interval} seconds`);
+      setup_ws_api();
       await sleep(retry_interval);
     }
   }
@@ -266,9 +267,7 @@ const api_call = async <TParams>(
   params: TParams,
 ) => {
   log(`calling api ${endpoint}, params: ${JSON.stringify(params)}`);
-  return WS_API
-    ? (await ws_api_call(endpoint, params, WS_API)).data
-    : (await (http_api_call(endpoint, params))).data;
+  return (await (WS_API ? ws_api_call : http_api_call)(endpoint, params)).data;
 };
 
 export const send_group_message = async (
