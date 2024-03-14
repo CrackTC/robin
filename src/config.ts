@@ -13,6 +13,7 @@ export class Config {
   groups: number[];
   max_retry: number;
   retry_interval: number;
+  timeout: number;
   handlers: { [key: string]: object };
 
   constructor() {
@@ -24,6 +25,7 @@ export class Config {
     this.groups = [];
     this.max_retry = 5;
     this.retry_interval = 30;
+    this.timeout = 10;
     this.handlers = {};
   }
 }
@@ -67,6 +69,9 @@ export const verify_config = (config: Config) => {
     "retry_interval must be a number",
   );
   assert(config.retry_interval >= 0, "retry_interval must be non-negative");
+
+  assert(typeof config.timeout === "number", "timeout must be a number");
+  assert(config.timeout >= 0, "timeout must be non-negative");
 
   assert(typeof config.handlers === "object", "handlers must be an object");
 };
