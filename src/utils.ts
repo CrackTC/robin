@@ -17,7 +17,7 @@ export const log = (...data: unknown[]) =>
     data.map((item) =>
       typeof item === "string"
         ? item
-        : JSON.stringify(item, Object.getOwnPropertyNames(item))
+        : JSON.stringify(item, Object.getOwnPropertyNames(item ?? {}))
     )
       .join(" "),
   );
@@ -29,7 +29,7 @@ export const warn = (...data: unknown[]) =>
     data.map((item) =>
       typeof item === "string"
         ? item
-        : JSON.stringify(item, Object.getOwnPropertyNames(item))
+        : JSON.stringify(item, Object.getOwnPropertyNames(item ?? {}))
     )
       .join(" "),
   );
@@ -41,7 +41,7 @@ export const error = (...data: unknown[]) =>
     data.map((item) =>
       typeof item === "string"
         ? item
-        : JSON.stringify(item, Object.getOwnPropertyNames(item))
+        : JSON.stringify(item, Object.getOwnPropertyNames(item ?? {}))
     )
       .join(" "),
   );
