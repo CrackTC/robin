@@ -1,7 +1,7 @@
-import { api_handler } from "/api/index.ts";
-import { get_config } from "/config.ts";
-import { handle_event } from "/handlers/index.ts";
-import { log } from "/utils.ts";
+import { api_handler } from "./api/index.ts";
+import { get_config } from "./config.ts";
+import { handle_event } from "./handlers/index.ts";
+import { log } from "./utils.ts";
 
 const http_request_handler = async (request: Request) => {
   if (new URL(request.url).pathname.startsWith("/api")) {

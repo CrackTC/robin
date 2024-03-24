@@ -199,7 +199,7 @@ const http_api_call = async <TParams>(
         headers: new Headers({ "Content-Type": "application/json" }),
         body: get_api_body(endpoint, params),
       }).then((resp) => resp.json());
-      if (response.status !== "failed") return response;
+      if (response && response.status !== "failed") return response;
 
       warn(`http api call to ${endpoint} failed: ${response}`);
       warn(`retry in ${retry_interval} seconds`);
@@ -266,8 +266,16 @@ const api_call = async <TParams>(
   endpoint: string,
   params: TParams,
 ) => {
-  log(`calling api ${endpoint}, params: ${JSON.stringify(params)}`);
-  return (await (WS_API ? ws_api_call : http_api_call)(endpoint, params)).data;
+  const MAXCHARS = 500;
+  let json = JSON.stringify(params);
+  if (json.length > MAXCHARS) {
+    json = `${json.slice(0, MAXCHARS)}... (${json.length - MAXCHARS} more)`;
+  }
+  log(`calling api ${endpoint}, params: ${json}`);
+  return (await (get_config().http_api_call ? http_api_call : ws_api_call)(
+    endpoint,
+    params,
+  )).data;
 };
 
 export const send_group_message = async (

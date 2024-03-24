@@ -1,6 +1,6 @@
 import { debounce } from "https://deno.land/std@0.210.0/async/debounce.ts";
 import { EventEmitter } from "https://deno.land/x/eventemitter@1.2.4/mod.ts";
-import { assert, error, log } from "/utils.ts";
+import { assert, error, log } from "./utils.ts";
 
 const FALLBACK_TOKEN = crypto.randomUUID();
 
@@ -8,6 +8,7 @@ export class Config {
   self_id: number;
   port: number;
   http_addr: string;
+  http_api_call: boolean;
   ws_addr: string;
   api_token: string;
   groups: number[];
@@ -20,6 +21,7 @@ export class Config {
     this.self_id = 0;
     this.port = 3101;
     this.http_addr = "";
+    this.http_api_call = false;
     this.ws_addr = "";
     this.api_token = FALLBACK_TOKEN;
     this.groups = [];
@@ -49,12 +51,20 @@ export const verify_config = (config: Config) => {
     "port must be in range 1-65535",
   );
 
-  assert(typeof config.http_addr === "string", "http_addr must be a string");
-  assert(typeof config.ws_addr === "string", "ws_addr must be a string");
-
   assert(
-    config.ws_addr.length > 0 || config.http_addr.length > 0,
-    "at least one of http_addr and ws_addr must be non-empty",
+    typeof config.http_api_call === "boolean",
+    "http_api_call must be a boolean",
+  );
+
+  assert(typeof config.http_addr === "string", "http_addr must be a string");
+  assert(
+    config.http_api_call === false || config.http_addr.length > 0,
+    "http_addr must be non-empty if http_api_call is true",
+  );
+  assert(typeof config.ws_addr === "string", "ws_addr must be a string");
+  assert(
+    config.http_api_call === true || config.ws_addr.length > 0,
+    "ws_addr must be non-empty if http_api_call is false",
   );
 
   assert(typeof config.api_token === "string", "api_token must be a string");
