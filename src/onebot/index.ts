@@ -179,7 +179,7 @@ export const get_safe_card = (card: string | null) => {
   else return card;
 };
 
-const get_api_body = <TParams>(
+const get_ws_api_body = <TParams>(
   endpoint: string,
   params: TParams,
   echo?: string,
@@ -194,10 +194,10 @@ const http_api_call = async <TParams>(
   let response: HttpApiResponse;
   for (let i = 0; i < max_retry + 1; i++) {
     try {
-      response = await fetch(http_addr, {
+      response = await fetch(`${http_addr}/${endpoint}`, {
         method: "POST",
         headers: new Headers({ "Content-Type": "application/json" }),
-        body: get_api_body(endpoint, params),
+        body: JSON.stringify(params),
       }).then((resp) => resp.json());
       if (response && response.status !== "failed") return response;
 
@@ -242,7 +242,7 @@ const ws_api_call = async <TParams>(
   for (let i = 0; i < max_retry + 1; i++) {
     try {
       const echo = crypto.randomUUID();
-      const msg = get_api_body(endpoint, params, echo);
+      const msg = get_ws_api_body(endpoint, params, echo);
       response = await ws_fetch(msg, echo);
       if (response && response.status !== "failed") return response;
 
