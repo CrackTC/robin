@@ -4,6 +4,7 @@ import { load_handlers } from "/handlers/index.ts";
 const mock_config = {
   self_id: 123456789,
   http_addr: "http://localhost:8080",
+  http_api_call: true
 };
 
 Deno.test("import test", async () => {
