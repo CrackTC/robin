@@ -201,11 +201,11 @@ const http_api_call = async <TParams>(
       }).then((resp) => resp.json());
       if (response && response.status !== "failed") return response;
 
-      warn(`http api call to ${endpoint} failed: ${response}`);
+      warn("http api call to ${endpoint} failed:", response);
       warn(`retry in ${retry_interval} seconds`);
       await sleep(retry_interval);
     } catch (e) {
-      warn(`http api call to ${endpoint} failed: ${e}`);
+      warn("http api call to ${endpoint} failed:", e);
       warn(`retry in ${retry_interval} seconds`);
       await sleep(retry_interval);
     }
